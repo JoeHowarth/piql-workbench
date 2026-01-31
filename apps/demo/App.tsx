@@ -1,5 +1,5 @@
 import { createSignal, onCleanup } from 'solid-js';
-import { DataFrameTable } from '../src';
+import { DataFrameTable } from 'query-viz';
 import { createMockArrowBuffer } from './mockData';
 
 export default function App() {

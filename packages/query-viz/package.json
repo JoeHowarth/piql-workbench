@@ -1,0 +1,23 @@
+{
+  "name": "query-viz",
+  "version": "0.1.0",
+  "type": "module",
+  "main": "./src/index.ts",
+  "types": "./src/index.ts",
+  "exports": {
+    ".": {
+      "import": "./src/index.ts",
+      "types": "./src/index.ts"
+    }
+  },
+  "peerDependencies": {
+    "solid-js": "^1.8.0"
+  },
+  "dependencies": {
+    "apache-arrow": "^18.0.0"
+  },
+  "devDependencies": {
+    "solid-js": "^1.9.3",
+    "typescript": "^5.7.2"
+  }
+}

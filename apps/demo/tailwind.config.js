@@ -1,8 +1,8 @@
 /** @type {import('tailwindcss').Config} */
 export default {
   content: [
-    './src/**/*.{js,ts,jsx,tsx}',
-    './demo/**/*.{js,ts,jsx,tsx,html}',
+    './**/*.{js,ts,jsx,tsx,html}',
+    '../../packages/query-viz/src/**/*.{js,ts,jsx,tsx}',
   ],
   theme: {
     extend: {},
