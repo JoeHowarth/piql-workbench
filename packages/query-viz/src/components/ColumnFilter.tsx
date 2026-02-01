@@ -45,8 +45,8 @@ export const ColumnFilter: Component<Props> = (props) => {
         ref={buttonRef}
         class="p-0.5 rounded transition-colors"
         classList={{
-          'text-blue-600': hasActiveFilter(),
-          'text-gray-300 hover:text-gray-500': !hasActiveFilter(),
+          'text-blue-600 dark:text-blue-400': hasActiveFilter(),
+          'text-gray-300 dark:text-gray-600 hover:text-gray-500 dark:hover:text-gray-400': !hasActiveFilter(),
         }}
         onClick={handleToggle}
         title={hasActiveFilter() ? 'Filter active' : 'Filter'}
@@ -62,15 +62,15 @@ export const ColumnFilter: Component<Props> = (props) => {
             onMouseDown={(e) => e.preventDefault()}
           />
           <div
-            class="fixed z-[101] bg-white rounded shadow-lg border border-gray-200 py-2 min-w-[160px] max-w-[240px]"
+            class="fixed z-[101] bg-white dark:bg-gray-800 rounded shadow-lg border border-gray-200 dark:border-gray-700 py-2 min-w-[160px] max-w-[240px]"
             style={{ top: `${position().top}px`, left: `${position().left}px` }}
             onClick={(e) => e.stopPropagation()}
             onMouseDown={(e) => e.stopPropagation()}
           >
-            <div class="px-2 pb-1 mb-1 border-b border-gray-100 flex items-center justify-between">
-              <span class="text-xs font-medium text-gray-500">{props.columnName}</span>
+            <div class="px-2 pb-1 mb-1 border-b border-gray-100 dark:border-gray-700 flex items-center justify-between">
+              <span class="text-xs font-medium text-gray-500 dark:text-gray-400">{props.columnName}</span>
               <Show when={hasActiveFilter()}>
-                <button class="text-xs text-red-500 hover:text-red-600" onClick={handleClear}>
+                <button class="text-xs text-red-500 hover:text-red-600 dark:text-red-400 dark:hover:text-red-300" onClick={handleClear}>
                   Clear
                 </button>
               </Show>
@@ -182,14 +182,14 @@ const TextFilter: Component<{
       <div class="px-2 pb-1">
         <input
           type="text"
-          class="w-full px-2 py-1 text-xs border border-gray-200 rounded focus:outline-none focus:border-blue-400"
+          class="w-full px-2 py-1 text-xs border border-gray-200 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-200 rounded focus:outline-none focus:border-blue-400"
           placeholder="Search..."
           value={search()}
           onInput={(e) => setSearch(e.currentTarget.value)}
         />
       </div>
       <div class="max-h-[200px] overflow-y-auto">
-        <label class="flex items-center gap-2 px-2 py-1 hover:bg-gray-50 cursor-pointer">
+        <label class="flex items-center gap-2 px-2 py-1 hover:bg-gray-50 dark:hover:bg-gray-700 cursor-pointer">
           <input
             type="checkbox"
             class="rounded text-blue-600"
@@ -197,21 +197,21 @@ const TextFilter: Component<{
             ref={(el) => { el.indeterminate = selectedSet().size > 0 && !allSelected(); }}
             onChange={toggleAll}
           />
-          <span class="text-xs text-gray-600 italic">
+          <span class="text-xs text-gray-600 dark:text-gray-400 italic">
             {allSelected() ? 'Deselect all' : 'Select all'}
           </span>
         </label>
-        <div class="border-t border-gray-100 mt-1 pt-1">
+        <div class="border-t border-gray-100 dark:border-gray-700 mt-1 pt-1">
           <For each={filteredValues()}>
             {(val) => (
-              <label class="flex items-center gap-2 px-2 py-0.5 hover:bg-gray-50 cursor-pointer">
+              <label class="flex items-center gap-2 px-2 py-0.5 hover:bg-gray-50 dark:hover:bg-gray-700 cursor-pointer">
                 <input
                   type="checkbox"
                   class="rounded text-blue-600"
                   checked={selectedSet().has(val)}
                   onChange={() => toggleValue(val)}
                 />
-                <span class="text-xs truncate" title={val}>{val || '(empty)'}</span>
+                <span class="text-xs dark:text-gray-200 truncate" title={val}>{val || '(empty)'}</span>
               </label>
             )}
           </For>
@@ -239,7 +239,7 @@ const TextSearchFilter: Component<{
       <input
         ref={inputRef}
         type="text"
-        class="w-full px-2 py-1 text-xs border border-gray-200 rounded focus:outline-none focus:border-blue-400"
+        class="w-full px-2 py-1 text-xs border border-gray-200 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-200 rounded focus:outline-none focus:border-blue-400"
         placeholder="Contains..."
         value={local()}
         onInput={(e) => setLocal(e.currentTarget.value)}
@@ -283,7 +283,7 @@ const NumericFilter: Component<{
         <input
           ref={inputRef}
           type="number"
-          class="w-16 px-2 py-1 text-xs border border-gray-200 rounded focus:outline-none focus:border-blue-400"
+          class="w-16 px-2 py-1 text-xs border border-gray-200 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-200 rounded focus:outline-none focus:border-blue-400"
           placeholder="Min"
           value={min()}
           onInput={(e) => setMin(e.currentTarget.value)}
@@ -292,7 +292,7 @@ const NumericFilter: Component<{
         <span class="text-gray-400 text-xs">–</span>
         <input
           type="number"
-          class="w-16 px-2 py-1 text-xs border border-gray-200 rounded focus:outline-none focus:border-blue-400"
+          class="w-16 px-2 py-1 text-xs border border-gray-200 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-200 rounded focus:outline-none focus:border-blue-400"
           placeholder="Max"
           value={max()}
           onInput={(e) => setMax(e.currentTarget.value)}
@@ -323,8 +323,8 @@ const BooleanFilter: Component<{
         <button
           class="w-full text-left px-2 py-1 text-xs rounded transition-colors"
           classList={{
-            'bg-blue-50 text-blue-700': props.value === opt.value,
-            'hover:bg-gray-50': props.value !== opt.value,
+            'bg-blue-50 dark:bg-blue-900/50 text-blue-700 dark:text-blue-300': props.value === opt.value,
+            'hover:bg-gray-50 dark:hover:bg-gray-700 dark:text-gray-200': props.value !== opt.value,
           }}
           onClick={() => props.onChange(opt.value)}
         >

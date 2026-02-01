@@ -20,9 +20,9 @@ export const TableBody: Component<Props> = (props) => {
       <For each={props.rows}>
         {(row, rowIndex) => (
           <tr
-            class="hover:bg-blue-50"
+            class="hover:bg-blue-50 dark:hover:bg-blue-900/30"
             classList={{
-              'bg-gray-50': isStriped() && rowIndex() % 2 === 1,
+              'bg-gray-50 dark:bg-gray-800/50': isStriped() && rowIndex() % 2 === 1,
             }}
           >
             <For each={props.columns}>

@@ -27,7 +27,7 @@ const PanelWithChild: Component<{
         </div>
       </Resizable.Panel>
       <Show when={!props.isLast}>
-        <Resizable.Handle class="shrink-0 bg-gray-300 hover:bg-blue-400 transition-colors data-[orientation=horizontal]:w-1 data-[orientation=horizontal]:cursor-col-resize data-[orientation=vertical]:h-1 data-[orientation=vertical]:cursor-row-resize" />
+        <Resizable.Handle class="shrink-0 bg-gray-300 dark:bg-gray-600 hover:bg-blue-400 dark:hover:bg-blue-500 transition-colors data-[orientation=horizontal]:w-1 data-[orientation=horizontal]:cursor-col-resize data-[orientation=vertical]:h-1 data-[orientation=vertical]:cursor-row-resize" />
       </Show>
     </>
   );

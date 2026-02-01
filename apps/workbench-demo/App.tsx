@@ -34,7 +34,7 @@ const initialLayout: PaneNode = {
 
 export default function App() {
   return (
-    <div class="h-screen bg-gray-100 p-2">
+    <div class="h-screen bg-gray-100 dark:bg-gray-950 p-2">
       <Workbench specs={specs} initialLayout={initialLayout} class="h-full" />
     </div>
   );

@@ -68,14 +68,14 @@ export const LeafPane: Component<Props> = (props) => {
   };
 
   const containerClass = () => {
-    const base = "relative flex flex-col h-full bg-white rounded overflow-hidden transition-all duration-150";
+    const base = "relative flex flex-col h-full bg-white dark:bg-gray-800 rounded overflow-hidden transition-all duration-150";
     if (isBeingDragged()) {
-      return `${base} border-2 border-blue-400 opacity-50`;
+      return `${base} border-2 border-blue-400 dark:border-blue-500 opacity-50`;
     }
     if (isHovered()) {
-      return `${base} border-2 border-blue-400 shadow-md`;
+      return `${base} border-2 border-blue-400 dark:border-blue-500 shadow-md dark:shadow-gray-900/50`;
     }
-    return `${base} border border-gray-200`;
+    return `${base} border border-gray-200 dark:border-gray-700`;
   };
 
   return (
@@ -95,15 +95,15 @@ export const LeafPane: Component<Props> = (props) => {
       {/* Title bar - draggable */}
       <div
         ref={draggable.ref}
-        class="flex items-center justify-between px-2 py-1 bg-gray-100 border-b border-gray-200 shrink-0 cursor-grab active:cursor-grabbing select-none"
+        class="flex items-center justify-between px-2 py-1 bg-gray-100 dark:bg-gray-900 border-b border-gray-200 dark:border-gray-700 shrink-0 cursor-grab active:cursor-grabbing select-none"
         {...draggable.dragActivators}
       >
-        <span class="text-xs font-medium text-gray-700 truncate">
+        <span class="text-xs font-medium text-gray-700 dark:text-gray-300 truncate">
           {spec()?.title ?? 'Unknown'}
         </span>
         <Show when={closable()}>
           <button
-            class="p-0.5 rounded hover:bg-gray-200 text-gray-500 hover:text-gray-700"
+            class="p-0.5 rounded hover:bg-gray-200 dark:hover:bg-gray-700 text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-200"
             onClick={handleClose}
             onMouseDown={(e) => e.stopPropagation()}
             title="Close"
@@ -117,7 +117,7 @@ export const LeafPane: Component<Props> = (props) => {
 
       {/* Content */}
       <div class="flex-1 overflow-auto">
-        <Show when={spec()} fallback={<div class="p-2 text-gray-400 text-sm">Tile not found</div>}>
+        <Show when={spec()} fallback={<div class="p-2 text-gray-400 dark:text-gray-500 text-sm">Tile not found</div>}>
           {spec()!.component()}
         </Show>
       </div>

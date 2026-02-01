@@ -57,18 +57,18 @@ export const TableCell: Component<Props> = (props) => {
 
   return (
     <td
-      class="border-b border-gray-100 truncate"
+      class="border-b border-gray-100 dark:border-gray-700 text-gray-900 dark:text-gray-100 truncate"
       classList={{
         'px-3 py-1.5': !props.compact,
         'px-2 py-1': props.compact,
         'text-right tabular-nums': isNumeric(),
         'text-center': isBool(),
-        'text-gray-400': isNull(),
-        'text-green-600': statusColor() === 'green',
-        'text-red-600': statusColor() === 'red',
-        'text-yellow-600': statusColor() === 'yellow',
-        'text-blue-600': statusColor() === 'blue',
-        'text-gray-600': statusColor() === 'gray',
+        'text-gray-400 dark:text-gray-500': isNull(),
+        'text-green-600 dark:text-green-400': statusColor() === 'green',
+        'text-red-600 dark:text-red-400': statusColor() === 'red',
+        'text-yellow-600 dark:text-yellow-400': statusColor() === 'yellow',
+        'text-blue-600 dark:text-blue-400': statusColor() === 'blue',
+        'text-gray-600 dark:text-gray-400': statusColor() === 'gray',
       }}
       style={{ width: `${props.width}px`, 'max-width': `${props.width}px` }}
       title={String(props.value ?? '')}

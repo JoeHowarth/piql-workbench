@@ -28,7 +28,7 @@ export const LayoutRoot: Component = () => {
       <Show
         when={layout()}
         fallback={
-          <div class="h-full flex items-center justify-center text-gray-400">
+          <div class="h-full flex items-center justify-center text-gray-400 dark:text-gray-500">
             No tiles open
           </div>
         }

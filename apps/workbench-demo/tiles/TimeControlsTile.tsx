@@ -54,7 +54,7 @@ const TimeControlsContent: Component = () => {
 
   return (
     <div class="p-4 flex items-center gap-4">
-      <div class="text-2xl font-mono font-bold text-gray-800 min-w-[80px]">
+      <div class="text-2xl font-mono font-bold text-gray-800 dark:text-gray-200 min-w-[80px]">
         {tick()}
       </div>
 
@@ -71,16 +71,16 @@ const TimeControlsContent: Component = () => {
 
       <div class="flex items-center gap-2">
         <button
-          class="px-2 py-1 bg-gray-200 rounded hover:bg-gray-300"
+          class="px-2 py-1 bg-gray-200 dark:bg-gray-600 dark:text-gray-200 rounded hover:bg-gray-300 dark:hover:bg-gray-500"
           onClick={() => adjustSpeed(-0.5)}
         >
           -
         </button>
-        <span class="text-sm text-gray-600 min-w-[60px] text-center">
+        <span class="text-sm text-gray-600 dark:text-gray-400 min-w-[60px] text-center">
           {speed().toFixed(1)}x
         </span>
         <button
-          class="px-2 py-1 bg-gray-200 rounded hover:bg-gray-300"
+          class="px-2 py-1 bg-gray-200 dark:bg-gray-600 dark:text-gray-200 rounded hover:bg-gray-300 dark:hover:bg-gray-500"
           onClick={() => adjustSpeed(0.5)}
         >
           +

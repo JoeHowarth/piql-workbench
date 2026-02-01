@@ -49,7 +49,7 @@ export const TableHeader: Component<Props> = (props) => {
         <For each={props.columns}>
           {(col) => (
             <th
-              class="px-3 py-2 text-left font-medium text-gray-700 bg-gray-50 border-b border-gray-200 cursor-pointer select-none hover:bg-gray-100 relative"
+              class="px-3 py-2 text-left font-medium text-gray-700 dark:text-gray-300 bg-gray-50 dark:bg-gray-900 border-b border-gray-200 dark:border-gray-700 cursor-pointer select-none hover:bg-gray-100 dark:hover:bg-gray-800 relative"
               style={{
                 width: `${props.state.columnWidths()[col.name] ?? 150}px`,
                 'min-width': `${props.config?.[col.name]?.minWidth ?? 50}px`,
