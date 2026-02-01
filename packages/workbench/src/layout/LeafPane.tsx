@@ -92,6 +92,7 @@ export const LeafPane: Component<Props> = (props) => {
         droppable.ref(el);
       }}
       class={containerClass()}
+      data-testid={`pane-${props.pane.specId}`}
       onMouseMove={handleMouseMove}
       onMouseLeave={(_e) => {
         handleMouseLeave();
