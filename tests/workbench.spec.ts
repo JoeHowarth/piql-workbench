@@ -76,14 +76,55 @@ test.describe("Workbench Layout", () => {
     await expect(inventoryPane).not.toBeVisible();
   });
 
-  test("resize handles are present", async ({ page }) => {
-    // Find resize handles (between panes)
+  test("resize handles are present for percentage-based splits", async ({
+    page,
+  }) => {
+    // Initial layout uses pixel-based sizes which render with CSS flex (no resize handles).
+    // See SplitPane.tsx for explanation of why pixel-based splits aren't resizable.
+    // To test resize handles, we first create a percentage-based split by dragging a tile.
+    const inventoryTile = page.getByText("Inventory").first();
+    const ordersPane = page.getByTestId("pane-orders");
+    const ordersBox = await ordersPane.boundingBox();
+
+    await inventoryTile.dragTo(ordersPane, {
+      targetPosition: { x: ordersBox!.width - 20, y: ordersBox!.height / 2 },
+    });
+
+    // Now there should be a resize handle between orders and inventory
     const handles = page.locator('[data-orientation="horizontal"]');
     await expect(handles.first()).toBeVisible();
 
-    // Should have at least one horizontal handle (between sidebar and content)
     const count = await handles.count();
     expect(count).toBeGreaterThanOrEqual(1);
+  });
+
+  test("vertical insert in sidebar does not shrink content pane", async ({
+    page,
+  }) => {
+    // Regression test: adding tiles vertically to the left sidebar
+    // was causing the Orders pane to get narrower each time
+    // SKIPPED: Known bug - investigating root cause
+
+    const ordersPane = page.getByTestId("pane-orders");
+    const initialBox = await ordersPane.boundingBox();
+    const initialWidth = initialBox!.width;
+
+    // Drag Shipments to bottom of Tiles picker (vertical insert)
+    const shipmentsTile = page.getByText("Shipments").first();
+    const pickerPane = page.getByTestId("pane-picker");
+    const pickerBox = await pickerPane.boundingBox();
+
+    await shipmentsTile.dragTo(pickerPane, {
+      targetPosition: { x: pickerBox!.width / 2, y: pickerBox!.height - 10 },
+    });
+
+    // Wait for layout to settle
+    await page.waitForTimeout(100);
+
+    // Orders width should be approximately the same (within 5px tolerance)
+    const newBox = await ordersPane.boundingBox();
+    expect(newBox!.width).toBeGreaterThan(initialWidth - 5);
+    expect(newBox!.width).toBeLessThan(initialWidth + 5);
   });
 
   test("can drag existing pane to rearrange", async ({ page }) => {
