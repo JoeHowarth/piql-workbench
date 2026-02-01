@@ -68,7 +68,7 @@ export const LeafPane: Component<Props> = (props) => {
   };
 
   const containerClass = () => {
-    const base = "relative flex flex-col h-full bg-white dark:bg-gray-800 rounded overflow-hidden transition-all duration-150 border-2";
+    const base = "relative flex flex-col h-full bg-white dark:bg-gray-800 rounded overflow-hidden transition-all duration-150 border";
     if (isBeingDragged()) {
       // pointer-events-none so collision detection sees through to tiles underneath
       return `${base} border-blue-400 dark:border-blue-500 opacity-50 pointer-events-none`;

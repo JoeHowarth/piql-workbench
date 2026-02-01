@@ -1,6 +1,6 @@
 import { createContext, useContext, createSignal } from 'solid-js';
 import type { Accessor } from 'solid-js';
-import type { PaneNode, TileSpec, DropPosition, WorkbenchContextValue } from './types';
+import type { PaneNode, TileSpec, DropPosition, WorkbenchContextValue, SizeSpec } from './types';
 import { insertTile, removePane, movePane, updateSizes } from './utils/tree';
 
 const WorkbenchContext = createContext<WorkbenchContextValue>();
@@ -53,7 +53,7 @@ export function createWorkbenchContext(
   };
 
   // Get sizes for a split, checking override first
-  const getSizes = (splitId: string, defaultSizes: number[]): number[] => {
+  const getSizes = (splitId: string, defaultSizes: SizeSpec[]): SizeSpec[] => {
     const override = sizesOverride().get(splitId);
     return override ?? defaultSizes;
   };

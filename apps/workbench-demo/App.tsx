@@ -16,13 +16,13 @@ const initialLayout: PaneNode = {
   type: 'split',
   id: 'root',
   dir: 'h',
-  sizes: [20, 80],
+  sizes: [{ px: 180 }, 100],
   children: [
     {
       type: 'split',
       id: 'left-split',
       dir: 'v',
-      sizes: [15, 85],
+      sizes: [{ px: 80 }, 100],
       children: [
         { type: 'leaf', id: 'time-pane', specId: 'time-controls' },
         { type: 'leaf', id: 'picker-pane', specId: 'picker' },

@@ -1,4 +1,4 @@
-import type { PaneNode, LeafPane, SplitPane, DropPosition } from '../types';
+import type { PaneNode, LeafPane, SplitPane, DropPosition, SizeSpec } from '../types';
 import { generatePaneId } from './ids';
 
 // Find a pane by id
@@ -135,6 +135,30 @@ function replaceInTree(
   return tree;
 }
 
+// Helper: normalize sizes after removal
+// Pixel sizes stay fixed, percentage sizes are normalized to fill remaining space
+function normalizeSizes(sizes: SizeSpec[]): SizeSpec[] {
+  // Separate pixel and percentage sizes
+  let percentageSum = 0;
+  for (const size of sizes) {
+    if (typeof size === 'number') {
+      percentageSum += size;
+    }
+  }
+
+  // If no percentage sizes, just return as-is
+  if (percentageSum === 0) return sizes;
+
+  // Normalize percentage sizes to sum to 100
+  const scale = 100 / percentageSum;
+  return sizes.map((size) => {
+    if (typeof size === 'number') {
+      return size * scale;
+    }
+    return size; // Keep pixel sizes unchanged
+  });
+}
+
 // Helper: remove a node and collapse empty splits
 function removeFromTree(tree: PaneNode, id: string): PaneNode | null {
   if (tree.type === 'leaf') {
@@ -143,21 +167,17 @@ function removeFromTree(tree: PaneNode, id: string): PaneNode | null {
 
   // Filter out the removed child
   const newChildren: PaneNode[] = [];
-  const newSizes: number[] = [];
-  let removedIndex = -1;
+  const newSizes: SizeSpec[] = [];
 
   for (let i = 0; i < tree.children.length; i++) {
     const child = tree.children[i];
     if (child.id === id) {
-      removedIndex = i;
       continue;
     }
     const processed = removeFromTree(child, id);
     if (processed) {
       newChildren.push(processed);
       newSizes.push(tree.sizes[i]);
-    } else {
-      removedIndex = i;
     }
   }
 
@@ -167,9 +187,8 @@ function removeFromTree(tree: PaneNode, id: string): PaneNode | null {
   // If only one child left, collapse the split
   if (newChildren.length === 1) return newChildren[0];
 
-  // Normalize sizes to sum to 100
-  const sizeSum = newSizes.reduce((a, b) => a + b, 0);
-  const normalizedSizes = newSizes.map((s) => (s / sizeSum) * 100);
+  // Normalize percentage sizes to sum to 100 (pixel sizes stay fixed)
+  const normalizedSizes = normalizeSizes(newSizes);
 
   return {
     ...tree,
@@ -182,7 +201,7 @@ function removeFromTree(tree: PaneNode, id: string): PaneNode | null {
 export function updateSizes(
   tree: PaneNode,
   splitId: string,
-  newSizes: number[]
+  newSizes: SizeSpec[]
 ): PaneNode {
   return replaceInTree(tree, splitId, (node) => {
     if (node.type !== 'split') return node;

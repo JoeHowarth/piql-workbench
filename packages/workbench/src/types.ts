@@ -7,12 +7,15 @@ export type LeafPane = {
   specId: string;
 };
 
+// Size can be percentage (number) or pixels ({ px: number })
+export type SizeSpec = number | { px: number };
+
 export type SplitPane = {
   type: 'split';
   id: string;
   dir: 'h' | 'v';
   children: PaneNode[];
-  sizes: number[]; // percentages, should sum to 100
+  sizes: SizeSpec[]; // percentages or pixel specs
 };
 
 export type PaneNode = LeafPane | SplitPane;
@@ -38,7 +41,7 @@ export interface WorkbenchContextValue {
   getSpec: (id: string) => TileSpec | undefined;
 
   // Size overrides (for reading current sizes without triggering re-renders)
-  getSizes: (splitId: string, defaultSizes: number[]) => number[];
+  getSizes: (splitId: string, defaultSizes: SizeSpec[]) => SizeSpec[];
 
   // Layout mutations
   addTile: (specId: string, targetPaneId: string, position: DropPosition) => void;
