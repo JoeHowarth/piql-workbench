@@ -19,9 +19,13 @@ const DndHandler: Component<Props> = (props) => {
     const specId = draggable.data?.specId as string | undefined;
     const sourcePaneId = draggable.data?.paneId as string | undefined;
     const targetPaneId = droppable.data?.paneId as string | undefined;
+    const targetClosable = droppable.data?.closable as boolean | undefined;
     const position = droppable.data?.dropPosition as DropPosition | undefined;
 
     if (!position || !targetPaneId) return;
+
+    // Don't allow center drops on non-closable tiles (would replace them)
+    if (position === 'center' && targetClosable === false) return;
 
     if (specId) {
       // Dragging from picker - add new tile

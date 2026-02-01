@@ -15,9 +15,15 @@ export const LeafPane: Component<Props> = (props) => {
   const [isHovered, setIsHovered] = createSignal(false);
   let containerRef: HTMLDivElement | undefined;
 
+  const spec = () => getSpec(props.pane.specId);
+  const closable = () => spec()?.closable !== false;
+
   // Use different ID prefixes for draggable vs droppable to avoid collision
   const droppable = createDroppable(`drop-${props.pane.id}`, {
     paneId: props.pane.id,
+    get closable() {
+      return closable();
+    },
     get dropPosition() {
       return dropPosition();
     },
@@ -42,15 +48,19 @@ export const LeafPane: Component<Props> = (props) => {
 
     const rect = containerRef.getBoundingClientRect();
     const pos = getDropPosition(e.clientX, e.clientY, rect);
+
+    // Non-closable tiles can't be replaced via center drop
+    if (pos === 'center' && !closable()) {
+      setDropPosition(null);
+      return;
+    }
+
     setDropPosition(pos);
   };
 
   const handleMouseLeave = () => {
     setDropPosition(null);
   };
-
-  const spec = () => getSpec(props.pane.specId);
-  const closable = () => spec()?.closable !== false;
 
   const handleClose = (e: MouseEvent) => {
     e.stopPropagation();
