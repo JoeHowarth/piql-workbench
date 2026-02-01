@@ -1,8 +1,44 @@
-import { DragDropProvider, DragDropSensors, useDragDropContext, DragOverlay } from '@thisbeyond/solid-dnd';
-import { createSignal, createEffect, Show } from 'solid-js';
+import { DragDropProvider, DragDropSensors, useDragDropContext } from '@thisbeyond/solid-dnd';
 import type { Component, JSX } from 'solid-js';
 import { useWorkbench } from '../context';
 import type { DropPosition } from '../types';
+
+// Custom collision detector that finds the droppable the cursor is actually over
+// We use the dropPosition data that LeafPane sets via mouse tracking
+const collisionDetector = (draggable: any, droppables: any[], context: any) => {
+  // Exclude the droppable corresponding to the dragged tile
+  const sourcePaneId = draggable.data?.paneId;
+  const candidates = sourcePaneId
+    ? droppables.filter(d => d.data?.paneId !== sourcePaneId)
+    : droppables;
+
+  // Find the droppable that has a dropPosition set (meaning cursor is over it)
+  const activeDroppable = candidates.find(d => d.data?.dropPosition != null);
+  if (activeDroppable) {
+    return activeDroppable;
+  }
+
+  // Fallback to checking which droppable contains the draggable center
+  const draggableRect = draggable.transformed;
+  if (draggableRect) {
+    const centerX = draggableRect.left + draggableRect.width / 2;
+    const centerY = draggableRect.top + draggableRect.height / 2;
+
+    for (const droppable of candidates) {
+      const rect = droppable.node.getBoundingClientRect();
+      if (
+        centerX >= rect.left &&
+        centerX <= rect.right &&
+        centerY >= rect.top &&
+        centerY <= rect.bottom
+      ) {
+        return droppable;
+      }
+    }
+  }
+
+  return null;
+};
 
 interface Props {
   children: JSX.Element;
@@ -41,7 +77,7 @@ const DndHandler: Component<Props> = (props) => {
 
 export const DndProvider: Component<Props> = (props) => {
   return (
-    <DragDropProvider>
+    <DragDropProvider collisionDetector={collisionDetector}>
       <DragDropSensors>
         <div class="h-full w-full">
           <DndHandler>{props.children}</DndHandler>
