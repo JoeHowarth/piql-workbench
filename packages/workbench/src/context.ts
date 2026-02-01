@@ -23,38 +23,66 @@ export function createWorkbenchContext(
   const [layout, setLayout] = createSignal<PaneNode | null>(initialLayout);
   const [specs] = createSignal<TileSpec[]>(initialSpecs);
 
+  // Store sizes separately to avoid tree re-renders on resize
+  // Key: splitId, Value: sizes array
+  const [sizesOverride, setSizesOverride] = createSignal<Map<string, number[]>>(new Map());
+
   const getSpec = (id: string): TileSpec | undefined => {
     return specs().find((s) => s.id === id);
   };
 
   const addTile = (specId: string, targetPaneId: string, position: DropPosition) => {
-    const current = layout();
+    const current = applyOverridesToTree();
     if (!current) return;
+    setSizesOverride(new Map()); // Clear overrides
     setLayout(insertTile(current, targetPaneId, position, specId));
   };
 
   const removePaneAction = (paneId: string) => {
-    const current = layout();
+    const current = applyOverridesToTree();
     if (!current) return;
+    setSizesOverride(new Map()); // Clear overrides
     setLayout(removePane(current, paneId));
   };
 
   const movePaneAction = (sourcePaneId: string, targetPaneId: string, position: DropPosition) => {
-    const current = layout();
+    const current = applyOverridesToTree();
     if (!current) return;
+    setSizesOverride(new Map()); // Clear overrides
     setLayout(movePane(current, sourcePaneId, targetPaneId, position));
   };
 
+  // Get sizes for a split, checking override first
+  const getSizes = (splitId: string, defaultSizes: number[]): number[] => {
+    const override = sizesOverride().get(splitId);
+    return override ?? defaultSizes;
+  };
+
   const updateSizesAction = (splitId: string, newSizes: number[]) => {
-    const current = layout();
-    if (!current) return;
-    setLayout(updateSizes(current, splitId, newSizes));
+    // Store in override map instead of updating tree (avoids re-render)
+    setSizesOverride((prev) => {
+      const next = new Map(prev);
+      next.set(splitId, newSizes);
+      return next;
+    });
+  };
+
+  // Apply size overrides to tree before structure changes
+  const applyOverridesToTree = (): PaneNode | null => {
+    let current = layout();
+    if (!current) return null;
+    const overrides = sizesOverride();
+    for (const [splitId, sizes] of overrides) {
+      current = updateSizes(current, splitId, sizes);
+    }
+    return current;
   };
 
   const value: WorkbenchContextValue = {
     layout,
     specs,
     getSpec,
+    getSizes,
     addTile,
     removePane: removePaneAction,
     movePane: movePaneAction,

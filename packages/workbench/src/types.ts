@@ -37,6 +37,9 @@ export interface WorkbenchContextValue {
   specs: Accessor<TileSpec[]>;
   getSpec: (id: string) => TileSpec | undefined;
 
+  // Size overrides (for reading current sizes without triggering re-renders)
+  getSizes: (splitId: string, defaultSizes: number[]) => number[];
+
   // Layout mutations
   addTile: (specId: string, targetPaneId: string, position: DropPosition) => void;
   removePane: (paneId: string) => void;

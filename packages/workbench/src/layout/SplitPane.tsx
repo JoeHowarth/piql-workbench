@@ -15,7 +15,6 @@ const SyncHandle: Component<{ paneId: string; class: string }> = (props) => {
   const resizable = useResizableContext();
 
   const handleDragEnd = () => {
-    // Get current sizes from resizable context and sync to tree
     const sizes = resizable.sizes();
     const percentages = sizes.map((s: number) => s * 100);
     updateSizes(props.paneId, percentages);
@@ -27,11 +26,15 @@ const SyncHandle: Component<{ paneId: string; class: string }> = (props) => {
 };
 
 export const SplitPane: Component<Props> = (props) => {
+  const { getSizes } = useWorkbench();
   const orientation = () => (props.pane.dir === 'h' ? 'horizontal' : 'vertical');
   const flexClass = () => (props.pane.dir === 'h' ? 'flex-row' : 'flex-col');
 
   // Key for structure changes - forces remount when children change
   const structureKey = () => props.pane.children.map(c => c.id).join('-');
+
+  // Get sizes from override map or fall back to tree
+  const sizes = () => getSizes(props.pane.id, props.pane.sizes);
 
   return (
     <Show when={structureKey()} keyed>
@@ -41,7 +44,7 @@ export const SplitPane: Component<Props> = (props) => {
             {(child, index) => (
               <>
                 <Resizable.Panel
-                  initialSize={props.pane.sizes[index()] / 100}
+                  initialSize={sizes()[index()] / 100}
                   minSize={0.05}
                   class="overflow-hidden"
                 >
