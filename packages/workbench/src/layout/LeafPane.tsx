@@ -115,11 +115,13 @@ export const LeafPane: Component<Props> = (props) => {
         </Show>
       </div>
 
-      {/* Content */}
+      {/* Content - pointer-events-none during drag so mouse events reach container */}
       <div class="flex-1 overflow-auto">
-        <Show when={spec()} fallback={<div class="p-2 text-gray-400 dark:text-gray-500 text-sm">Tile not found</div>}>
-          {spec()!.component()}
-        </Show>
+        <div classList={{ 'pointer-events-none': isDragging() }}>
+          <Show when={spec()} fallback={<div class="p-2 text-gray-400 dark:text-gray-500 text-sm">Tile not found</div>}>
+            {spec()!.component()}
+          </Show>
+        </div>
       </div>
 
       {/* Drop zone overlay */}
