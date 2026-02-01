@@ -18,6 +18,7 @@ export {
   isNumericType,
   isTemporalType,
   parseArrowBuffer,
+  parseArrowTable,
 } from "./lib/arrow";
 
 // Types

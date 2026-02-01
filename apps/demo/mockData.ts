@@ -1,4 +1,4 @@
-import { tableFromArrays, tableToIPC } from "apache-arrow";
+import { type Table, tableFromArrays } from "apache-arrow";
 
 const ITEM_NAMES = [
   "Widget",
@@ -15,7 +15,7 @@ const ITEM_NAMES = [
 
 const STATUSES = ["In Stock", "Low Stock", "Out of Stock", "Discontinued"];
 
-export function createMockArrowBuffer(rowCount: number = 100): ArrayBuffer {
+export function createMockTable(rowCount: number = 100): Table {
   const ids = Int32Array.from({ length: rowCount }, (_, i) => i + 1);
   const names = Array.from(
     { length: rowCount },
@@ -42,7 +42,7 @@ export function createMockArrowBuffer(rowCount: number = 100): ArrayBuffer {
       ),
   );
 
-  const table = tableFromArrays({
+  return tableFromArrays({
     id: ids,
     name: names,
     price: prices,
@@ -51,17 +51,4 @@ export function createMockArrowBuffer(rowCount: number = 100): ArrayBuffer {
     status: statuses,
     updated_at: updatedAt,
   });
-
-  const ipcBuffer = tableToIPC(table);
-  // tableToIPC returns a Uint8Array, copy to a fresh ArrayBuffer
-  const buffer = new ArrayBuffer(ipcBuffer.byteLength);
-  new Uint8Array(buffer).set(ipcBuffer);
-  return buffer;
-}
-
-// Create a buffer with some data changes for simulating live updates
-export function createUpdatedMockArrowBuffer(
-  baseRowCount: number = 100,
-): ArrayBuffer {
-  return createMockArrowBuffer(baseRowCount);
 }

@@ -1,9 +1,10 @@
-import { tableFromIPC } from "apache-arrow";
+import { type Table, tableFromIPC } from "apache-arrow";
 import type { ColumnSchema, ParsedArrowData } from "./types";
 
-export function parseArrowBuffer(buffer: ArrayBuffer): ParsedArrowData {
-  const table = tableFromIPC(buffer);
-
+/**
+ * Parse an Arrow Table into schema + rows for rendering
+ */
+export function parseArrowTable(table: Table): ParsedArrowData {
   const schema: ColumnSchema[] = table.schema.fields.map((field) => ({
     name: field.name,
     type: field.type.toString(),
@@ -18,6 +19,15 @@ export function parseArrowBuffer(buffer: ArrayBuffer): ParsedArrowData {
   }
 
   return { schema, rows };
+}
+
+/**
+ * Parse an Arrow IPC buffer into schema + rows for rendering
+ * @deprecated Use parseArrowTable with a Table directly
+ */
+export function parseArrowBuffer(buffer: ArrayBuffer): ParsedArrowData {
+  const table = tableFromIPC(buffer);
+  return parseArrowTable(table);
 }
 
 // Utility to check if a type is numeric for alignment/formatting

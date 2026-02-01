@@ -1,11 +1,10 @@
+import type { Table } from "apache-arrow";
 import { DataFrameTable } from "query-viz";
 import { createSignal, onCleanup } from "solid-js";
-import { createMockArrowBuffer } from "./mockData";
+import { createMockTable } from "./mockData";
 
 export default function App() {
-  const [data, setData] = createSignal<ArrayBuffer | null>(
-    createMockArrowBuffer(100),
-  );
+  const [table, setTable] = createSignal<Table | null>(createMockTable(100));
   const [isLive, setIsLive] = createSignal(false);
 
   // Live update simulation
@@ -18,7 +17,7 @@ export default function App() {
       setIsLive(false);
     } else {
       intervalId = window.setInterval(() => {
-        setData(createMockArrowBuffer(100));
+        setTable(createMockTable(100));
       }, 2000);
       setIsLive(true);
     }
@@ -29,7 +28,7 @@ export default function App() {
   });
 
   const refreshData = () => {
-    setData(createMockArrowBuffer(100));
+    setTable(createMockTable(100));
   };
 
   return (
@@ -39,7 +38,7 @@ export default function App() {
           DataFrameTable Demo
         </h1>
         <p class="text-gray-600 mb-4">
-          Click column headers to sort. Data is rendered from Arrow IPC format.
+          Click column headers to sort. Data is rendered from Arrow Table.
         </p>
 
         <div class="mb-4 flex gap-2">
@@ -63,7 +62,7 @@ export default function App() {
 
         <div class="bg-white rounded-lg shadow overflow-hidden">
           <DataFrameTable
-            data={data}
+            table={table}
             config={{
               columns: {
                 id: { label: "ID", width: 60 },

@@ -1,8 +1,9 @@
+import type { Table } from "apache-arrow";
 import { DataFrameTable } from "query-viz";
 import type { Component } from "solid-js";
 import { createSignal, onCleanup } from "solid-js";
 import type { TileSpec } from "workbench";
-import { createMockArrowBuffer } from "../mockData";
+import { createMockTable } from "../mockData";
 
 interface TableConfig {
   label: string;
@@ -16,20 +17,20 @@ export const tableTile = (id: string, config: TableConfig): TileSpec => ({
 });
 
 const TableContent: Component<{ rowCount: number }> = (props) => {
-  const [data, setData] = createSignal<ArrayBuffer | null>(
-    createMockArrowBuffer(props.rowCount),
+  const [table, setTable] = createSignal<Table | null>(
+    createMockTable(props.rowCount),
   );
 
   // Simulate live updates
   const intervalId = window.setInterval(() => {
-    setData(createMockArrowBuffer(props.rowCount));
+    setTable(createMockTable(props.rowCount));
   }, 3000);
 
   onCleanup(() => clearInterval(intervalId));
 
   return (
     <DataFrameTable
-      data={data}
+      table={table}
       config={{
         columns: {
           id: { label: "ID", width: 60 },

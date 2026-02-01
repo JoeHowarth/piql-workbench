@@ -1,3 +1,4 @@
+import type { Table } from "apache-arrow";
 import type { Accessor, Component } from "solid-js";
 import { createMemo } from "solid-js";
 import { useArrowData } from "../hooks/useArrowData";
@@ -8,13 +9,13 @@ import { TableBody } from "./TableBody";
 import { TableHeader } from "./TableHeader";
 
 interface Props {
-  data: Accessor<ArrayBuffer | null>;
+  table: Accessor<Table | null>;
   config?: TableConfig;
   class?: string;
 }
 
 export const DataFrameTable: Component<Props> = (props) => {
-  const store = useArrowData(props.data);
+  const store = useArrowData(props.table);
 
   // Create table state - needs to react to schema changes
   const state = createMemo(() => {
