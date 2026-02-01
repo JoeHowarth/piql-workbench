@@ -45,6 +45,12 @@ export function createWorkbenchContext(
     setLayout(movePane(current, sourcePaneId, targetPaneId, position));
   };
 
+  const updateSizesAction = (splitId: string, newSizes: number[]) => {
+    const current = layout();
+    if (!current) return;
+    setLayout(updateSizes(current, splitId, newSizes));
+  };
+
   const value: WorkbenchContextValue = {
     layout,
     specs,
@@ -52,6 +58,7 @@ export function createWorkbenchContext(
     addTile,
     removePane: removePaneAction,
     movePane: movePaneAction,
+    updateSizes: updateSizesAction,
   };
 
   return {

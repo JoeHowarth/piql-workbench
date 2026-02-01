@@ -41,6 +41,7 @@ export interface WorkbenchContextValue {
   addTile: (specId: string, targetPaneId: string, position: DropPosition) => void;
   removePane: (paneId: string) => void;
   movePane: (sourcePaneId: string, targetPaneId: string, position: DropPosition) => void;
+  updateSizes: (splitId: string, sizes: number[]) => void;
 }
 
 // Props for the main Workbench component
