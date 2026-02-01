@@ -18,17 +18,17 @@ const initialLayout: PaneNode = {
   dir: 'h',
   sizes: [20, 80],
   children: [
-    { type: 'leaf', id: 'picker-pane', specId: 'picker' },
     {
       type: 'split',
-      id: 'main-split',
+      id: 'left-split',
       dir: 'v',
       sizes: [15, 85],
       children: [
         { type: 'leaf', id: 'time-pane', specId: 'time-controls' },
-        { type: 'leaf', id: 'content-pane', specId: 'orders' },
+        { type: 'leaf', id: 'picker-pane', specId: 'picker' },
       ],
     },
+    { type: 'leaf', id: 'content-pane', specId: 'orders' },
   ],
 };
 
