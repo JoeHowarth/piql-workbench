@@ -1,10 +1,16 @@
-import type { PaneNode, LeafPane, SplitPane, DropPosition, SizeSpec } from '../types';
-import { generatePaneId } from './ids';
+import type {
+  DropPosition,
+  LeafPane,
+  PaneNode,
+  SizeSpec,
+  SplitPane,
+} from "../types";
+import { generatePaneId } from "./ids";
 
 // Find a pane by id
 export function findPane(tree: PaneNode, id: string): PaneNode | null {
   if (tree.id === id) return tree;
-  if (tree.type === 'split') {
+  if (tree.type === "split") {
     for (const child of tree.children) {
       const found = findPane(child, id);
       if (found) return found;
@@ -15,7 +21,7 @@ export function findPane(tree: PaneNode, id: string): PaneNode | null {
 
 // Find parent of a pane
 export function findParent(tree: PaneNode, id: string): SplitPane | null {
-  if (tree.type === 'leaf') return null;
+  if (tree.type === "leaf") return null;
   for (const child of tree.children) {
     if (child.id === id) return tree;
     const found = findParent(child, id);
@@ -25,13 +31,13 @@ export function findParent(tree: PaneNode, id: string): SplitPane | null {
 }
 
 // Get split direction for a drop position
-function getSplitDir(position: DropPosition): 'h' | 'v' {
-  return position === 'left' || position === 'right' ? 'h' : 'v';
+function getSplitDir(position: DropPosition): "h" | "v" {
+  return position === "left" || position === "right" ? "h" : "v";
 }
 
 // Get whether new pane goes first or second
 function isFirstPosition(position: DropPosition): boolean {
-  return position === 'left' || position === 'top';
+  return position === "left" || position === "top";
 }
 
 // Insert a new tile, splitting the target pane
@@ -39,18 +45,18 @@ export function insertTile(
   tree: PaneNode,
   targetId: string,
   position: DropPosition,
-  newSpecId: string
+  newSpecId: string,
 ): PaneNode {
   const newLeaf: LeafPane = {
-    type: 'leaf',
+    type: "leaf",
     id: generatePaneId(),
     specId: newSpecId,
   };
 
   // If dropping on center, replace the target pane's specId
-  if (position === 'center') {
+  if (position === "center") {
     return replaceInTree(tree, targetId, (node) => {
-      if (node.type !== 'leaf') return node;
+      if (node.type !== "leaf") return node;
       return { ...node, specId: newSpecId };
     });
   }
@@ -62,7 +68,7 @@ export function insertTile(
     const children = first ? [newLeaf, target] : [target, newLeaf];
 
     return {
-      type: 'split',
+      type: "split",
       id: generatePaneId(),
       dir,
       children,
@@ -84,14 +90,14 @@ export function movePane(
   tree: PaneNode,
   sourceId: string,
   targetId: string,
-  position: DropPosition
+  position: DropPosition,
 ): PaneNode {
   // Don't move to self
   if (sourceId === targetId) return tree;
 
   // Find the source pane
   const source = findPane(tree, sourceId);
-  if (!source || source.type !== 'leaf') return tree;
+  if (!source || source.type !== "leaf") return tree;
 
   // Get the specId before removing
   const specId = source.specId;
@@ -119,16 +125,18 @@ export function movePane(
 function replaceInTree(
   tree: PaneNode,
   id: string,
-  replacer: (node: PaneNode) => PaneNode
+  replacer: (node: PaneNode) => PaneNode,
 ): PaneNode {
   if (tree.id === id) {
     return replacer(tree);
   }
 
-  if (tree.type === 'split') {
+  if (tree.type === "split") {
     return {
       ...tree,
-      children: tree.children.map((child) => replaceInTree(child, id, replacer)),
+      children: tree.children.map((child) =>
+        replaceInTree(child, id, replacer),
+      ),
     };
   }
 
@@ -141,7 +149,7 @@ function normalizeSizes(sizes: SizeSpec[]): SizeSpec[] {
   // Separate pixel and percentage sizes
   let percentageSum = 0;
   for (const size of sizes) {
-    if (typeof size === 'number') {
+    if (typeof size === "number") {
       percentageSum += size;
     }
   }
@@ -152,7 +160,7 @@ function normalizeSizes(sizes: SizeSpec[]): SizeSpec[] {
   // Normalize percentage sizes to sum to 100
   const scale = 100 / percentageSum;
   return sizes.map((size) => {
-    if (typeof size === 'number') {
+    if (typeof size === "number") {
       return size * scale;
     }
     return size; // Keep pixel sizes unchanged
@@ -161,7 +169,7 @@ function normalizeSizes(sizes: SizeSpec[]): SizeSpec[] {
 
 // Helper: remove a node and collapse empty splits
 function removeFromTree(tree: PaneNode, id: string): PaneNode | null {
-  if (tree.type === 'leaf') {
+  if (tree.type === "leaf") {
     return tree.id === id ? null : tree;
   }
 
@@ -201,10 +209,10 @@ function removeFromTree(tree: PaneNode, id: string): PaneNode | null {
 export function updateSizes(
   tree: PaneNode,
   splitId: string,
-  newSizes: SizeSpec[]
+  newSizes: SizeSpec[],
 ): PaneNode {
   return replaceInTree(tree, splitId, (node) => {
-    if (node.type !== 'split') return node;
+    if (node.type !== "split") return node;
     return { ...node, sizes: newSizes };
   });
 }

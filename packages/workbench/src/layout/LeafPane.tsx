@@ -1,9 +1,13 @@
-import { Show, createSignal } from 'solid-js';
-import type { Component } from 'solid-js';
-import { createDroppable, createDraggable, useDragDropContext } from '@thisbeyond/solid-dnd';
-import type { LeafPane as LeafPaneType } from '../types';
-import { useWorkbench } from '../context';
-import { getDropPosition, getDropZoneStyle } from '../dnd/dropZones';
+import {
+  createDraggable,
+  createDroppable,
+  useDragDropContext,
+} from "@thisbeyond/solid-dnd";
+import type { Component } from "solid-js";
+import { createSignal, Show } from "solid-js";
+import { useWorkbench } from "../context";
+import { getDropPosition, getDropZoneStyle } from "../dnd/dropZones";
+import type { LeafPane as LeafPaneType } from "../types";
 
 interface Props {
   pane: LeafPaneType;
@@ -37,7 +41,8 @@ export const LeafPane: Component<Props> = (props) => {
   // Get drag context to detect when dragging is active
   const ctx = useDragDropContext();
   const isDragging = () => ctx?.[0]?.active?.draggable != null;
-  const isBeingDragged = () => ctx?.[0]?.active?.draggable?.id === `drag-${props.pane.id}`;
+  const isBeingDragged = () =>
+    ctx?.[0]?.active?.draggable?.id === `drag-${props.pane.id}`;
 
   // Track mouse position to determine drop zone
   const handleMouseMove = (e: MouseEvent) => {
@@ -50,7 +55,7 @@ export const LeafPane: Component<Props> = (props) => {
     const pos = getDropPosition(e.clientX, e.clientY, rect);
 
     // Non-closable tiles can't be replaced via center drop
-    if (pos === 'center' && !closable()) {
+    if (pos === "center" && !closable()) {
       setDropPosition(null);
       return;
     }
@@ -68,7 +73,8 @@ export const LeafPane: Component<Props> = (props) => {
   };
 
   const containerClass = () => {
-    const base = "relative flex flex-col h-full bg-white dark:bg-gray-800 rounded overflow-hidden transition-all duration-150 border";
+    const base =
+      "relative flex flex-col h-full bg-white dark:bg-gray-800 rounded overflow-hidden transition-all duration-150 border";
     if (isBeingDragged()) {
       // pointer-events-none so collision detection sees through to tiles underneath
       return `${base} border-blue-400 dark:border-blue-500 opacity-50 pointer-events-none`;
@@ -87,7 +93,7 @@ export const LeafPane: Component<Props> = (props) => {
       }}
       class={containerClass()}
       onMouseMove={handleMouseMove}
-      onMouseLeave={(e) => {
+      onMouseLeave={(_e) => {
         handleMouseLeave();
         setIsHovered(false);
       }}
@@ -100,17 +106,28 @@ export const LeafPane: Component<Props> = (props) => {
         {...draggable.dragActivators}
       >
         <span class="text-xs font-medium text-gray-700 dark:text-gray-300 truncate">
-          {spec()?.title ?? 'Unknown'}
+          {spec()?.title ?? "Unknown"}
         </span>
         <Show when={closable()}>
           <button
+            type="button"
             class="p-0.5 rounded hover:bg-gray-200 dark:hover:bg-gray-700 text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-200"
             onClick={handleClose}
             onMouseDown={(e) => e.stopPropagation()}
             title="Close"
           >
-            <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+            <svg
+              class="w-3 h-3"
+              fill="none"
+              stroke="currentColor"
+              viewBox="0 0 24 24"
+            >
+              <path
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                stroke-width="2"
+                d="M6 18L18 6M6 6l12 12"
+              />
             </svg>
           </button>
         </Show>
@@ -118,8 +135,15 @@ export const LeafPane: Component<Props> = (props) => {
 
       {/* Content - pointer-events-none during drag so mouse events reach container */}
       <div class="flex-1 overflow-auto">
-        <div classList={{ 'pointer-events-none': isDragging() }}>
-          <Show when={spec()} fallback={<div class="p-2 text-gray-400 dark:text-gray-500 text-sm">Tile not found</div>}>
+        <div classList={{ "pointer-events-none": isDragging() }}>
+          <Show
+            when={spec()}
+            fallback={
+              <div class="p-2 text-gray-400 dark:text-gray-500 text-sm">
+                Tile not found
+              </div>
+            }
+          >
             {spec()!.component()}
           </Show>
         </div>

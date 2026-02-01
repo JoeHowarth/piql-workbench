@@ -1,18 +1,22 @@
-import { createMemo } from 'solid-js';
-import type { Accessor } from 'solid-js';
-import type { SortState, FilterValue } from '../lib/types';
+import type { Accessor } from "solid-js";
+import { createMemo } from "solid-js";
+import type { FilterValue, SortState } from "../lib/types";
 
 function matchesFilter(value: unknown, filter: FilterValue): boolean {
   if (filter === null) return true;
 
   // Multi-select string filter: array of allowed values
-  if (Array.isArray(filter) && filter.every(v => typeof v === 'string')) {
-    const strVal = String(value ?? '');
+  if (Array.isArray(filter) && filter.every((v) => typeof v === "string")) {
+    const strVal = String(value ?? "");
     return (filter as string[]).includes(strVal);
   }
 
   // Range filter for numbers: [min, max]
-  if (Array.isArray(filter) && filter.length === 2 && typeof filter[0] === 'number') {
+  if (
+    Array.isArray(filter) &&
+    filter.length === 2 &&
+    typeof filter[0] === "number"
+  ) {
     const [min, max] = filter as [number, number];
     const num = Number(value);
     if (Number.isNaN(num)) return false;
@@ -20,13 +24,13 @@ function matchesFilter(value: unknown, filter: FilterValue): boolean {
   }
 
   // String filter: case-insensitive contains (legacy/fallback)
-  if (typeof filter === 'string') {
-    const str = String(value ?? '').toLowerCase();
+  if (typeof filter === "string") {
+    const str = String(value ?? "").toLowerCase();
     return str.includes(filter.toLowerCase());
   }
 
   // Exact numeric match (for booleans: 1=true, 0=false)
-  if (typeof filter === 'number') {
+  if (typeof filter === "number") {
     return Number(value) === filter;
   }
 
@@ -36,7 +40,7 @@ function matchesFilter(value: unknown, filter: FilterValue): boolean {
 export function useDerivedRows(
   rows: Record<string, unknown>[],
   sortBy: Accessor<SortState>,
-  filters: Accessor<Record<string, FilterValue>>
+  filters: Accessor<Record<string, FilterValue>>,
 ) {
   return createMemo(() => {
     let result = [...rows];
@@ -62,13 +66,13 @@ export function useDerivedRows(
 
         // Compare values
         let cmp: number;
-        if (typeof aVal === 'number' && typeof bVal === 'number') {
+        if (typeof aVal === "number" && typeof bVal === "number") {
           cmp = aVal - bVal;
         } else {
           cmp = String(aVal).localeCompare(String(bVal));
         }
 
-        return sort.dir === 'asc' ? cmp : -cmp;
+        return sort.dir === "asc" ? cmp : -cmp;
       });
     }
 

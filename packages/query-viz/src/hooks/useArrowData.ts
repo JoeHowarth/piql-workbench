@@ -1,8 +1,8 @@
-import { createEffect } from 'solid-js';
-import { createStore, reconcile } from 'solid-js/store';
-import type { Accessor } from 'solid-js';
-import { parseArrowBuffer } from '../lib/arrow';
-import type { ColumnSchema } from '../lib/types';
+import type { Accessor } from "solid-js";
+import { createEffect } from "solid-js";
+import { createStore, reconcile } from "solid-js/store";
+import { parseArrowBuffer } from "../lib/arrow";
+import type { ColumnSchema } from "../lib/types";
 
 interface ArrowDataStore {
   schema: ColumnSchema[];

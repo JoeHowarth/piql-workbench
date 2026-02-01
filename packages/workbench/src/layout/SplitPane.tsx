@@ -1,9 +1,9 @@
-import { For, Show, createSignal, onMount } from 'solid-js';
-import type { Component } from 'solid-js';
-import Resizable, { useContext as useResizableContext } from '@corvu/resizable';
-import type { SplitPane as SplitPaneType, SizeSpec } from '../types';
-import { LayoutNode } from './LayoutRoot';
-import { useWorkbench } from '../context';
+import Resizable, { useContext as useResizableContext } from "@corvu/resizable";
+import type { Component } from "solid-js";
+import { createSignal, For, onMount, Show } from "solid-js";
+import { useWorkbench } from "../context";
+import type { SizeSpec, SplitPane as SplitPaneType } from "../types";
+import { LayoutNode } from "./LayoutRoot";
 
 interface Props {
   pane: SplitPaneType;
@@ -26,14 +26,17 @@ const SyncHandle: Component<{ paneId: string; class: string }> = (props) => {
 };
 
 // Convert SizeSpec array to percentages based on container dimension
-function convertSizesToPercentages(specs: SizeSpec[], containerSize: number): number[] {
+function convertSizesToPercentages(
+  specs: SizeSpec[],
+  containerSize: number,
+): number[] {
   // First pass: calculate total pixels and count of percentage-based sizes
   let totalPixels = 0;
   let percentageCount = 0;
   let percentageSum = 0;
 
   for (const spec of specs) {
-    if (typeof spec === 'object' && 'px' in spec) {
+    if (typeof spec === "object" && "px" in spec) {
       totalPixels += spec.px;
     } else {
       percentageCount++;
@@ -46,7 +49,7 @@ function convertSizesToPercentages(specs: SizeSpec[], containerSize: number): nu
   const scale = percentageCount > 0 ? remainingPercent / percentageSum : 1;
 
   return specs.map((spec) => {
-    if (typeof spec === 'object' && 'px' in spec) {
+    if (typeof spec === "object" && "px" in spec) {
       return (spec.px / containerSize) * 100;
     }
     return spec * scale;
@@ -58,14 +61,16 @@ export const SplitPane: Component<Props> = (props) => {
   let containerRef: HTMLDivElement | undefined;
   const [containerSize, setContainerSize] = createSignal<number | null>(null);
 
-  const orientation = () => (props.pane.dir === 'h' ? 'horizontal' : 'vertical');
-  const flexClass = () => (props.pane.dir === 'h' ? 'flex-row' : 'flex-col');
+  const orientation = () =>
+    props.pane.dir === "h" ? "horizontal" : "vertical";
+  const flexClass = () => (props.pane.dir === "h" ? "flex-row" : "flex-col");
 
   // Key for structure changes - forces remount when children change
-  const structureKey = () => props.pane.children.map(c => c.id).join('-');
+  const structureKey = () => props.pane.children.map((c) => c.id).join("-");
 
   // Check if any sizes are pixel-based
-  const hasPixelSizes = () => props.pane.sizes.some(s => typeof s === 'object' && 'px' in s);
+  const hasPixelSizes = () =>
+    props.pane.sizes.some((s) => typeof s === "object" && "px" in s);
 
   // Get sizes, converting pixels to percentages if needed
   const sizes = () => {
@@ -73,7 +78,10 @@ export const SplitPane: Component<Props> = (props) => {
 
     // If we have pixel sizes and container is measured, convert
     if (hasPixelSizes() && containerSize()) {
-      return convertSizesToPercentages(rawSizes as SizeSpec[], containerSize()!);
+      return convertSizesToPercentages(
+        rawSizes as SizeSpec[],
+        containerSize()!,
+      );
     }
 
     // Otherwise assume all percentages
@@ -82,17 +90,26 @@ export const SplitPane: Component<Props> = (props) => {
 
   onMount(() => {
     if (containerRef && hasPixelSizes()) {
-      const dim = props.pane.dir === 'h' ? containerRef.offsetWidth : containerRef.offsetHeight;
+      const dim =
+        props.pane.dir === "h"
+          ? containerRef.offsetWidth
+          : containerRef.offsetHeight;
       setContainerSize(dim);
     }
   });
 
   return (
     <div ref={containerRef} class="h-full w-full">
-      <Show when={!hasPixelSizes() || containerSize()} fallback={<div class="h-full w-full" />}>
+      <Show
+        when={!hasPixelSizes() || containerSize()}
+        fallback={<div class="h-full w-full" />}
+      >
         <Show when={structureKey()} keyed>
           {(_key) => (
-            <Resizable orientation={orientation()} class={`h-full w-full flex ${flexClass()}`}>
+            <Resizable
+              orientation={orientation()}
+              class={`h-full w-full flex ${flexClass()}`}
+            >
               <For each={props.pane.children}>
                 {(child, index) => (
                   <>

@@ -1,5 +1,5 @@
-import { createDraggable } from '@thisbeyond/solid-dnd';
-import type { Component, JSX } from 'solid-js';
+import { createDraggable } from "@thisbeyond/solid-dnd";
+import type { Component, JSX } from "solid-js";
 
 interface Props {
   id: string;
@@ -14,9 +14,9 @@ export const DraggableItem: Component<Props> = (props) => {
   return (
     <div
       ref={draggable.ref}
-      class={`cursor-grab active:cursor-grabbing ${props.class ?? ''}`}
+      class={`cursor-grab active:cursor-grabbing ${props.class ?? ""}`}
       classList={{
-        'opacity-50': draggable.isActiveDraggable,
+        "opacity-50": draggable.isActiveDraggable,
       }}
       {...draggable.dragActivators}
     >

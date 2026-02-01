@@ -1,7 +1,7 @@
-import { For } from 'solid-js';
-import type { Component } from 'solid-js';
-import { TableCell } from './TableCell';
-import type { ColumnSchema, ColumnConfig } from '../lib/types';
+import type { Component } from "solid-js";
+import { For } from "solid-js";
+import type { ColumnConfig, ColumnSchema } from "../lib/types";
+import { TableCell } from "./TableCell";
 
 interface Props {
   columns: ColumnSchema[];
@@ -22,7 +22,8 @@ export const TableBody: Component<Props> = (props) => {
           <tr
             class="hover:bg-blue-50 dark:hover:bg-blue-900/30"
             classList={{
-              'bg-gray-50 dark:bg-gray-800/50': isStriped() && rowIndex() % 2 === 1,
+              "bg-gray-50 dark:bg-gray-800/50":
+                isStriped() && rowIndex() % 2 === 1,
             }}
           >
             <For each={props.columns}>

@@ -1,10 +1,10 @@
-import { createSignal, onCleanup } from 'solid-js';
-import type { Component } from 'solid-js';
-import type { TileSpec } from 'workbench';
+import type { Component } from "solid-js";
+import { createSignal, onCleanup } from "solid-js";
+import type { TileSpec } from "workbench";
 
 export const timeControlsTile = (): TileSpec => ({
-  id: 'time-controls',
-  title: 'Time Controls',
+  id: "time-controls",
+  title: "Time Controls",
   closable: false,
   component: () => <TimeControlsContent />,
 });
@@ -74,7 +74,7 @@ const TimeControlsContent: Component = () => {
   const speedDisplay = () => {
     const s = speed();
     if (s >= 1) return s.toString();
-    return s.toFixed(2).replace(/\.?0+$/, '');
+    return s.toFixed(2).replace(/\.?0+$/, "");
   };
 
   onCleanup(() => {
@@ -101,6 +101,7 @@ const TimeControlsContent: Component = () => {
         <div class="flex items-center gap-1">
           {/* Slower */}
           <button
+            type="button"
             class="w-7 h-7 flex items-center justify-center rounded bg-gray-100 dark:bg-gray-700 text-gray-500 dark:text-gray-400 hover:bg-gray-200 dark:hover:bg-gray-600 hover:text-gray-700 dark:hover:text-gray-200 transition-colors"
             onClick={halveSpeed}
             title="Half speed"
@@ -110,13 +111,15 @@ const TimeControlsContent: Component = () => {
 
           {/* Play/Pause with speed display */}
           <button
+            type="button"
             class="w-8 h-7 flex items-center justify-center rounded transition-all"
             classList={{
-              'bg-green-500 hover:bg-green-600 text-white': playing(),
-              'bg-gray-300 dark:bg-gray-500 hover:bg-gray-400 dark:hover:bg-gray-400 text-gray-600 dark:text-gray-200': !playing(),
+              "bg-green-500 hover:bg-green-600 text-white": playing(),
+              "bg-gray-300 dark:bg-gray-500 hover:bg-gray-400 dark:hover:bg-gray-400 text-gray-600 dark:text-gray-200":
+                !playing(),
             }}
             onClick={togglePlay}
-            title={playing() ? 'Pause' : 'Play'}
+            title={playing() ? "Pause" : "Play"}
           >
             <span class="text-[10px] font-bold font-mono tabular-nums">
               {speedDisplay()}
@@ -125,6 +128,7 @@ const TimeControlsContent: Component = () => {
 
           {/* Faster */}
           <button
+            type="button"
             class="w-7 h-7 flex items-center justify-center rounded bg-gray-100 dark:bg-gray-700 text-gray-500 dark:text-gray-400 hover:bg-gray-200 dark:hover:bg-gray-600 hover:text-gray-700 dark:hover:text-gray-200 transition-colors"
             onClick={doubleSpeed}
             title="Double speed"

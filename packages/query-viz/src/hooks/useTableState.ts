@@ -1,18 +1,18 @@
-import { createSignal } from 'solid-js';
+import { createSignal } from "solid-js";
 import type {
   ColumnSchema,
-  TableConfig,
-  SortState,
   FilterValue,
+  SortState,
+  TableConfig,
   TableState,
-} from '../lib/types';
+} from "../lib/types";
 
 const DEFAULT_COLUMN_WIDTH = 150;
 const MIN_COLUMN_WIDTH = 50;
 
 function inferInitialWidths(
   schema: ColumnSchema[],
-  config?: TableConfig
+  config?: TableConfig,
 ): Record<string, number> {
   const widths: Record<string, number> = {};
   for (const col of schema) {
@@ -24,22 +24,22 @@ function inferInitialWidths(
 
 export function useTableState(
   schema: ColumnSchema[],
-  config?: TableConfig
+  config?: TableConfig,
 ): TableState {
   const [sortBy, setSortBy] = createSignal<SortState>(
-    config?.defaultSort ?? null
+    config?.defaultSort ?? null,
   );
 
   const [filters, setFilters] = createSignal<Record<string, FilterValue>>({});
 
   const [columnWidths, setColumnWidths] = createSignal<Record<string, number>>(
-    inferInitialWidths(schema, config)
+    inferInitialWidths(schema, config),
   );
 
   const toggleSort = (column: string) => {
     setSortBy((prev) => {
-      if (prev?.column !== column) return { column, dir: 'asc' };
-      if (prev.dir === 'asc') return { column, dir: 'desc' };
+      if (prev?.column !== column) return { column, dir: "asc" };
+      if (prev.dir === "asc") return { column, dir: "desc" };
       return null; // Third click clears sort
     });
   };

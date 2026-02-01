@@ -1,21 +1,26 @@
-import { createContext, useContext, createSignal } from 'solid-js';
-import type { Accessor } from 'solid-js';
-import type { PaneNode, TileSpec, DropPosition, WorkbenchContextValue, SizeSpec } from './types';
-import { insertTile, removePane, movePane, updateSizes } from './utils/tree';
+import { createContext, createSignal, useContext } from "solid-js";
+import type {
+  DropPosition,
+  PaneNode,
+  SizeSpec,
+  TileSpec,
+  WorkbenchContextValue,
+} from "./types";
+import { insertTile, movePane, removePane, updateSizes } from "./utils/tree";
 
 const WorkbenchContext = createContext<WorkbenchContextValue>();
 
 export function useWorkbench(): WorkbenchContextValue {
   const ctx = useContext(WorkbenchContext);
   if (!ctx) {
-    throw new Error('useWorkbench must be used within a WorkbenchProvider');
+    throw new Error("useWorkbench must be used within a WorkbenchProvider");
   }
   return ctx;
 }
 
 export function createWorkbenchContext(
   initialSpecs: TileSpec[],
-  initialLayout: PaneNode
+  initialLayout: PaneNode,
 ): {
   Provider: typeof WorkbenchContext.Provider;
   value: WorkbenchContextValue;
@@ -25,13 +30,19 @@ export function createWorkbenchContext(
 
   // Store sizes separately to avoid tree re-renders on resize
   // Key: splitId, Value: sizes array
-  const [sizesOverride, setSizesOverride] = createSignal<Map<string, number[]>>(new Map());
+  const [sizesOverride, setSizesOverride] = createSignal<Map<string, number[]>>(
+    new Map(),
+  );
 
   const getSpec = (id: string): TileSpec | undefined => {
     return specs().find((s) => s.id === id);
   };
 
-  const addTile = (specId: string, targetPaneId: string, position: DropPosition) => {
+  const addTile = (
+    specId: string,
+    targetPaneId: string,
+    position: DropPosition,
+  ) => {
     const current = applyOverridesToTree();
     if (!current) return;
     setSizesOverride(new Map()); // Clear overrides
@@ -45,7 +56,11 @@ export function createWorkbenchContext(
     setLayout(removePane(current, paneId));
   };
 
-  const movePaneAction = (sourcePaneId: string, targetPaneId: string, position: DropPosition) => {
+  const movePaneAction = (
+    sourcePaneId: string,
+    targetPaneId: string,
+    position: DropPosition,
+  ) => {
     const current = applyOverridesToTree();
     if (!current) return;
     setSizesOverride(new Map()); // Clear overrides

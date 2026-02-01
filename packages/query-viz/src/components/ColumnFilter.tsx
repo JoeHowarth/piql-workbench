@@ -1,8 +1,8 @@
-import { createSignal, Show, For, createMemo, onMount } from 'solid-js';
-import { Portal } from 'solid-js/web';
-import type { Component } from 'solid-js';
-import { isNumericType, isBooleanType } from '../lib/arrow';
-import type { FilterValue } from '../lib/types';
+import type { Component } from "solid-js";
+import { createMemo, createSignal, For, onMount, Show } from "solid-js";
+import { Portal } from "solid-js/web";
+import { isBooleanType, isNumericType } from "../lib/arrow";
+import type { FilterValue } from "../lib/types";
 
 interface Props {
   columnName: string;
@@ -17,7 +17,8 @@ export const ColumnFilter: Component<Props> = (props) => {
   const [position, setPosition] = createSignal({ top: 0, left: 0 });
   let buttonRef: HTMLButtonElement | undefined;
 
-  const hasActiveFilter = () => props.currentFilter !== null && props.currentFilter !== undefined;
+  const hasActiveFilter = () =>
+    props.currentFilter !== null && props.currentFilter !== undefined;
 
   const handleToggle = (e: MouseEvent) => {
     e.stopPropagation();
@@ -45,11 +46,12 @@ export const ColumnFilter: Component<Props> = (props) => {
         ref={buttonRef}
         class="p-0.5 rounded transition-colors"
         classList={{
-          'text-blue-600 dark:text-blue-400': hasActiveFilter(),
-          'text-gray-300 dark:text-gray-600 hover:text-gray-500 dark:hover:text-gray-400': !hasActiveFilter(),
+          "text-blue-600 dark:text-blue-400": hasActiveFilter(),
+          "text-gray-300 dark:text-gray-600 hover:text-gray-500 dark:hover:text-gray-400":
+            !hasActiveFilter(),
         }}
         onClick={handleToggle}
-        title={hasActiveFilter() ? 'Filter active' : 'Filter'}
+        title={hasActiveFilter() ? "Filter active" : "Filter"}
       >
         <FilterIcon />
       </button>
@@ -58,7 +60,11 @@ export const ColumnFilter: Component<Props> = (props) => {
         <Portal>
           <div
             class="fixed inset-0 z-[100]"
-            onClick={(e) => { e.stopPropagation(); e.preventDefault(); setIsOpen(false); }}
+            onClick={(e) => {
+              e.stopPropagation();
+              e.preventDefault();
+              setIsOpen(false);
+            }}
             onMouseDown={(e) => e.preventDefault()}
           />
           <div
@@ -68,9 +74,14 @@ export const ColumnFilter: Component<Props> = (props) => {
             onMouseDown={(e) => e.stopPropagation()}
           >
             <div class="px-2 pb-1 mb-1 border-b border-gray-100 dark:border-gray-700 flex items-center justify-between">
-              <span class="text-xs font-medium text-gray-500 dark:text-gray-400">{props.columnName}</span>
+              <span class="text-xs font-medium text-gray-500 dark:text-gray-400">
+                {props.columnName}
+              </span>
               <Show when={hasActiveFilter()}>
-                <button class="text-xs text-red-500 hover:text-red-600 dark:text-red-400 dark:hover:text-red-300" onClick={handleClear}>
+                <button
+                  class="text-xs text-red-500 hover:text-red-600 dark:text-red-400 dark:hover:text-red-300"
+                  onClick={handleClear}
+                >
                   Clear
                 </button>
               </Show>
@@ -79,18 +90,29 @@ export const ColumnFilter: Component<Props> = (props) => {
             <Show when={isNumericType(props.columnType)}>
               <NumericFilter
                 value={props.currentFilter as [number, number] | null}
-                onChange={(v) => { props.onFilterChange(v); if (v !== null) setIsOpen(false); }}
+                onChange={(v) => {
+                  props.onFilterChange(v);
+                  if (v !== null) setIsOpen(false);
+                }}
               />
             </Show>
 
             <Show when={isBooleanType(props.columnType)}>
               <BooleanFilter
                 value={props.currentFilter as number | null}
-                onChange={(v) => { props.onFilterChange(v); setIsOpen(false); }}
+                onChange={(v) => {
+                  props.onFilterChange(v);
+                  setIsOpen(false);
+                }}
               />
             </Show>
 
-            <Show when={!isNumericType(props.columnType) && !isBooleanType(props.columnType)}>
+            <Show
+              when={
+                !isNumericType(props.columnType) &&
+                !isBooleanType(props.columnType)
+              }
+            >
               <TextFilter
                 value={props.currentFilter as string[] | string | null}
                 uniqueValues={props.uniqueValues}
@@ -106,7 +128,11 @@ export const ColumnFilter: Component<Props> = (props) => {
 
 const FilterIcon: Component = () => (
   <svg class="w-3 h-3" fill="currentColor" viewBox="0 0 20 20">
-    <path fill-rule="evenodd" d="M3 3a1 1 0 011-1h12a1 1 0 011 1v3a1 1 0 01-.293.707L12 11.414V15a1 1 0 01-.293.707l-2 2A1 1 0 018 17v-5.586L3.293 6.707A1 1 0 013 6V3z" clip-rule="evenodd" />
+    <path
+      fill-rule="evenodd"
+      d="M3 3a1 1 0 011-1h12a1 1 0 011 1v3a1 1 0 01-.293.707L12 11.414V15a1 1 0 01-.293.707l-2 2A1 1 0 018 17v-5.586L3.293 6.707A1 1 0 013 6V3z"
+      clip-rule="evenodd"
+    />
   </svg>
 );
 
@@ -115,7 +141,7 @@ const TextFilter: Component<{
   uniqueValues?: unknown[];
   onChange: (v: FilterValue) => void;
 }> = (props) => {
-  const [search, setSearch] = createSignal('');
+  const [search, setSearch] = createSignal("");
 
   // Convert current value to Set for easy lookup
   const selectedSet = createMemo(() => {
@@ -128,19 +154,19 @@ const TextFilter: Component<{
   // Get unique string values, filtered by search
   const filteredValues = createMemo(() => {
     const values = (props.uniqueValues ?? [])
-      .map(v => String(v ?? ''))
+      .map((v) => String(v ?? ""))
       .filter((v, i, arr) => arr.indexOf(v) === i) // unique
       .sort();
 
     const s = search().toLowerCase();
     if (!s) return values;
-    return values.filter(v => v.toLowerCase().includes(s));
+    return values.filter((v) => v.toLowerCase().includes(s));
   });
 
   const allSelected = createMemo(() => {
     const filtered = filteredValues();
     if (filtered.length === 0) return false;
-    return filtered.every(v => selectedSet().has(v));
+    return filtered.every((v) => selectedSet().has(v));
   });
 
   const toggleValue = (val: string) => {
@@ -162,19 +188,24 @@ const TextFilter: Component<{
     if (allSelected()) {
       // Deselect all filtered values
       const current = new Set(selectedSet());
-      filtered.forEach(v => current.delete(v));
+      filtered.forEach((v) => current.delete(v));
       props.onChange(current.size === 0 ? null : [...current]);
     } else {
       // Select all filtered values
       const current = new Set(selectedSet());
-      filtered.forEach(v => current.add(v));
+      filtered.forEach((v) => current.add(v));
       props.onChange([...current]);
     }
   };
 
   // If no unique values provided, fall back to text search
   if (!props.uniqueValues || props.uniqueValues.length === 0) {
-    return <TextSearchFilter value={typeof props.value === 'string' ? props.value : null} onChange={props.onChange} />;
+    return (
+      <TextSearchFilter
+        value={typeof props.value === "string" ? props.value : null}
+        onChange={props.onChange}
+      />
+    );
   }
 
   return (
@@ -194,11 +225,13 @@ const TextFilter: Component<{
             type="checkbox"
             class="rounded text-blue-600"
             checked={allSelected()}
-            ref={(el) => { el.indeterminate = selectedSet().size > 0 && !allSelected(); }}
+            ref={(el) => {
+              el.indeterminate = selectedSet().size > 0 && !allSelected();
+            }}
             onChange={toggleAll}
           />
           <span class="text-xs text-gray-600 dark:text-gray-400 italic">
-            {allSelected() ? 'Deselect all' : 'Select all'}
+            {allSelected() ? "Deselect all" : "Select all"}
           </span>
         </label>
         <div class="border-t border-gray-100 dark:border-gray-700 mt-1 pt-1">
@@ -211,7 +244,9 @@ const TextFilter: Component<{
                   checked={selectedSet().has(val)}
                   onChange={() => toggleValue(val)}
                 />
-                <span class="text-xs dark:text-gray-200 truncate" title={val}>{val || '(empty)'}</span>
+                <span class="text-xs dark:text-gray-200 truncate" title={val}>
+                  {val || "(empty)"}
+                </span>
               </label>
             )}
           </For>
@@ -225,7 +260,7 @@ const TextSearchFilter: Component<{
   value: string | null;
   onChange: (v: FilterValue) => void;
 }> = (props) => {
-  const [local, setLocal] = createSignal(props.value ?? '');
+  const [local, setLocal] = createSignal(props.value ?? "");
   let inputRef: HTMLInputElement | undefined;
   onMount(() => inputRef?.focus());
 
@@ -243,7 +278,7 @@ const TextSearchFilter: Component<{
         placeholder="Contains..."
         value={local()}
         onInput={(e) => setLocal(e.currentTarget.value)}
-        onKeyDown={(e) => e.key === 'Enter' && handleSubmit()}
+        onKeyDown={(e) => e.key === "Enter" && handleSubmit()}
       />
       <button
         class="w-full px-2 py-1 text-xs bg-blue-600 text-white rounded hover:bg-blue-700"
@@ -260,10 +295,10 @@ const NumericFilter: Component<{
   onChange: (v: FilterValue) => void;
 }> = (props) => {
   const initial = Array.isArray(props.value)
-    ? props.value.map(v => v === -Infinity || v === Infinity ? null : v)
+    ? props.value.map((v) => (v === -Infinity || v === Infinity ? null : v))
     : [null, null];
-  const [min, setMin] = createSignal<string>(initial[0]?.toString() ?? '');
-  const [max, setMax] = createSignal<string>(initial[1]?.toString() ?? '');
+  const [min, setMin] = createSignal<string>(initial[0]?.toString() ?? "");
+  const [max, setMax] = createSignal<string>(initial[1]?.toString() ?? "");
   let inputRef: HTMLInputElement | undefined;
   onMount(() => inputRef?.focus());
 
@@ -287,7 +322,7 @@ const NumericFilter: Component<{
           placeholder="Min"
           value={min()}
           onInput={(e) => setMin(e.currentTarget.value)}
-          onKeyDown={(e) => e.key === 'Enter' && handleSubmit()}
+          onKeyDown={(e) => e.key === "Enter" && handleSubmit()}
         />
         <span class="text-gray-400 text-xs">–</span>
         <input
@@ -296,7 +331,7 @@ const NumericFilter: Component<{
           placeholder="Max"
           value={max()}
           onInput={(e) => setMax(e.currentTarget.value)}
-          onKeyDown={(e) => e.key === 'Enter' && handleSubmit()}
+          onKeyDown={(e) => e.key === "Enter" && handleSubmit()}
         />
       </div>
       <button
@@ -316,15 +351,17 @@ const BooleanFilter: Component<{
   return (
     <div class="px-1">
       {[
-        { value: null, label: 'All' },
-        { value: 1, label: 'True' },
-        { value: 0, label: 'False' },
+        { value: null, label: "All" },
+        { value: 1, label: "True" },
+        { value: 0, label: "False" },
       ].map((opt) => (
         <button
           class="w-full text-left px-2 py-1 text-xs rounded transition-colors"
           classList={{
-            'bg-blue-50 dark:bg-blue-900/50 text-blue-700 dark:text-blue-300': props.value === opt.value,
-            'hover:bg-gray-50 dark:hover:bg-gray-700 dark:text-gray-200': props.value !== opt.value,
+            "bg-blue-50 dark:bg-blue-900/50 text-blue-700 dark:text-blue-300":
+              props.value === opt.value,
+            "hover:bg-gray-50 dark:hover:bg-gray-700 dark:text-gray-200":
+              props.value !== opt.value,
           }}
           onClick={() => props.onChange(opt.value)}
         >

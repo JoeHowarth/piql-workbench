@@ -1,11 +1,11 @@
-import { createMemo } from 'solid-js';
-import type { Accessor, Component } from 'solid-js';
-import { useArrowData } from '../hooks/useArrowData';
-import { useTableState } from '../hooks/useTableState';
-import { useDerivedRows } from '../hooks/useDerivedRows';
-import { TableHeader } from './TableHeader';
-import { TableBody } from './TableBody';
-import type { TableConfig } from '../lib/types';
+import type { Accessor, Component } from "solid-js";
+import { createMemo } from "solid-js";
+import { useArrowData } from "../hooks/useArrowData";
+import { useDerivedRows } from "../hooks/useDerivedRows";
+import { useTableState } from "../hooks/useTableState";
+import type { TableConfig } from "../lib/types";
+import { TableBody } from "./TableBody";
+import { TableHeader } from "./TableHeader";
 
 interface Props {
   data: Accessor<ArrayBuffer | null>;
@@ -30,15 +30,15 @@ export const DataFrameTable: Component<Props> = (props) => {
   // Filter out hidden columns
   const visibleColumns = createMemo(() => {
     return store.schema.filter(
-      (col) => !props.config?.columns?.[col.name]?.hidden
+      (col) => !props.config?.columns?.[col.name]?.hidden,
     );
   });
 
   return (
     <div
-      class={`overflow-auto ${props.class ?? ''}`}
+      class={`overflow-auto ${props.class ?? ""}`}
       classList={{
-        'relative': props.config?.stickyHeader,
+        relative: props.config?.stickyHeader,
       }}
     >
       <table class="w-full border-collapse text-sm">
@@ -54,7 +54,7 @@ export const DataFrameTable: Component<Props> = (props) => {
           columnWidths={state().columnWidths()}
           columnConfig={props.config?.columns}
           striped={props.config?.stripedRows}
-          compact={props.config?.density === 'compact'}
+          compact={props.config?.density === "compact"}
         />
       </table>
     </div>

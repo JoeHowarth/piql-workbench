@@ -1,8 +1,8 @@
-import type { Accessor, JSX } from 'solid-js';
+import type { Accessor, JSX } from "solid-js";
 
 // Layout tree nodes
 export type LeafPane = {
-  type: 'leaf';
+  type: "leaf";
   id: string;
   specId: string;
 };
@@ -11,9 +11,9 @@ export type LeafPane = {
 export type SizeSpec = number | { px: number };
 
 export type SplitPane = {
-  type: 'split';
+  type: "split";
   id: string;
-  dir: 'h' | 'v';
+  dir: "h" | "v";
   children: PaneNode[];
   sizes: SizeSpec[]; // percentages or pixel specs
 };
@@ -29,7 +29,7 @@ export interface TileSpec {
 }
 
 // Drop positions for drag/drop
-export type DropPosition = 'left' | 'right' | 'top' | 'bottom' | 'center';
+export type DropPosition = "left" | "right" | "top" | "bottom" | "center";
 
 // Workbench context interface
 export interface WorkbenchContextValue {
@@ -44,9 +44,17 @@ export interface WorkbenchContextValue {
   getSizes: (splitId: string, defaultSizes: SizeSpec[]) => SizeSpec[];
 
   // Layout mutations
-  addTile: (specId: string, targetPaneId: string, position: DropPosition) => void;
+  addTile: (
+    specId: string,
+    targetPaneId: string,
+    position: DropPosition,
+  ) => void;
   removePane: (paneId: string) => void;
-  movePane: (sourcePaneId: string, targetPaneId: string, position: DropPosition) => void;
+  movePane: (
+    sourcePaneId: string,
+    targetPaneId: string,
+    position: DropPosition,
+  ) => void;
   updateSizes: (splitId: string, sizes: number[]) => void;
 }
 

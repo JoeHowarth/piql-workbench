@@ -1,8 +1,8 @@
-import { For, Show, createMemo } from 'solid-js';
-import type { Component } from 'solid-js';
-import type { ColumnSchema, ColumnConfig, TableState } from '../lib/types';
-import { ResizeHandle } from './ResizeHandle';
-import { ColumnFilter } from './ColumnFilter';
+import type { Component } from "solid-js";
+import { createMemo, For, Show } from "solid-js";
+import type { ColumnConfig, ColumnSchema, TableState } from "../lib/types";
+import { ColumnFilter } from "./ColumnFilter";
+import { ResizeHandle } from "./ResizeHandle";
 
 interface Props {
   columns: ColumnSchema[];
@@ -11,11 +11,11 @@ interface Props {
   rows: Record<string, unknown>[];
 }
 
-const SortIcon: Component<{ dir: 'asc' | 'desc' | null }> = (props) => {
+const SortIcon: Component<{ dir: "asc" | "desc" | null }> = (props) => {
   return (
     <span class="ml-1 inline-block w-3">
-      <Show when={props.dir === 'asc'}>↑</Show>
-      <Show when={props.dir === 'desc'}>↓</Show>
+      <Show when={props.dir === "asc"}>↑</Show>
+      <Show when={props.dir === "desc"}>↓</Show>
     </span>
   );
 };
@@ -37,7 +37,7 @@ export const TableHeader: Component<Props> = (props) => {
   const uniqueValuesMap = createMemo(() => {
     const map: Record<string, unknown[]> = {};
     for (const col of props.columns) {
-      const values = props.rows.map(row => row[col.name]);
+      const values = props.rows.map((row) => row[col.name]);
       map[col.name] = [...new Set(values)];
     }
     return map;
@@ -52,7 +52,7 @@ export const TableHeader: Component<Props> = (props) => {
               class="px-3 py-2 text-left font-medium text-gray-700 dark:text-gray-300 bg-gray-50 dark:bg-gray-900 border-b border-gray-200 dark:border-gray-700 cursor-pointer select-none hover:bg-gray-100 dark:hover:bg-gray-800 relative"
               style={{
                 width: `${props.state.columnWidths()[col.name] ?? 150}px`,
-                'min-width': `${props.config?.[col.name]?.minWidth ?? 50}px`,
+                "min-width": `${props.config?.[col.name]?.minWidth ?? 50}px`,
               }}
               onClick={() => props.state.toggleSort(col.name)}
             >
@@ -77,7 +77,8 @@ export const TableHeader: Component<Props> = (props) => {
               </div>
               <ResizeHandle
                 onResize={(delta) => {
-                  const currentWidth = props.state.columnWidths()[col.name] ?? 150;
+                  const currentWidth =
+                    props.state.columnWidths()[col.name] ?? 150;
                   props.state.setColumnWidth(col.name, currentWidth + delta);
                 }}
               />

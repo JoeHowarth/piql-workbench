@@ -1,5 +1,5 @@
-import { tableFromIPC } from 'apache-arrow';
-import type { ColumnSchema, ParsedArrowData } from './types';
+import { tableFromIPC } from "apache-arrow";
+import type { ColumnSchema, ParsedArrowData } from "./types";
 
 export function parseArrowBuffer(buffer: ArrayBuffer): ParsedArrowData {
   const table = tableFromIPC(buffer);
@@ -23,23 +23,23 @@ export function parseArrowBuffer(buffer: ArrayBuffer): ParsedArrowData {
 // Utility to check if a type is numeric for alignment/formatting
 export function isNumericType(type: string): boolean {
   return (
-    type.startsWith('Int') ||
-    type.startsWith('Uint') ||
-    type.startsWith('Float') ||
-    type === 'Decimal'
+    type.startsWith("Int") ||
+    type.startsWith("Uint") ||
+    type.startsWith("Float") ||
+    type === "Decimal"
   );
 }
 
 // Utility to check if a type is a timestamp/date
 export function isTemporalType(type: string): boolean {
   return (
-    type.startsWith('Timestamp') ||
-    type.startsWith('Date') ||
-    type.startsWith('Time')
+    type.startsWith("Timestamp") ||
+    type.startsWith("Date") ||
+    type.startsWith("Time")
   );
 }
 
 // Utility to check if a type is boolean
 export function isBooleanType(type: string): boolean {
-  return type === 'Bool';
+  return type === "Bool";
 }

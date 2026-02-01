@@ -1,11 +1,11 @@
-import { For } from 'solid-js';
-import type { Component } from 'solid-js';
-import { useWorkbench, DraggableItem } from 'workbench';
-import type { TileSpec } from 'workbench';
+import type { Component } from "solid-js";
+import { For } from "solid-js";
+import type { TileSpec } from "workbench";
+import { DraggableItem, useWorkbench } from "workbench";
 
 export const pickerTile = (): TileSpec => ({
-  id: 'picker',
-  title: 'Tiles',
+  id: "picker",
+  title: "Tiles",
   closable: false,
   component: () => <PickerContent />,
 });
@@ -15,7 +15,7 @@ const PickerContent: Component = () => {
 
   // Filter out the picker itself and non-closable tiles
   const availableSpecs = () =>
-    specs().filter((s) => s.id !== 'picker' && s.closable !== false);
+    specs().filter((s) => s.id !== "picker" && s.closable !== false);
 
   return (
     <div class="p-2 space-y-1">

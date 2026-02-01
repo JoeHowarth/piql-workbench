@@ -1,18 +1,18 @@
-import { Show, Switch, Match } from 'solid-js';
-import type { Component } from 'solid-js';
-import type { PaneNode } from '../types';
-import { useWorkbench } from '../context';
-import { LeafPane } from './LeafPane';
-import { SplitPane } from './SplitPane';
+import type { Component } from "solid-js";
+import { Match, Show, Switch } from "solid-js";
+import { useWorkbench } from "../context";
+import type { PaneNode } from "../types";
+import { LeafPane } from "./LeafPane";
+import { SplitPane } from "./SplitPane";
 
 // Recursive component to render a pane node
 export const LayoutNode: Component<{ pane: PaneNode }> = (props) => {
   return (
     <Switch>
-      <Match when={props.pane.type === 'leaf'}>
+      <Match when={props.pane.type === "leaf"}>
         <LeafPane pane={props.pane as any} />
       </Match>
-      <Match when={props.pane.type === 'split'}>
+      <Match when={props.pane.type === "split"}>
         <SplitPane pane={props.pane as any} />
       </Match>
     </Switch>

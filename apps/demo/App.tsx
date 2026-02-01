@@ -1,10 +1,10 @@
-import { createSignal, onCleanup } from 'solid-js';
-import { DataFrameTable } from 'query-viz';
-import { createMockArrowBuffer } from './mockData';
+import { DataFrameTable } from "query-viz";
+import { createSignal, onCleanup } from "solid-js";
+import { createMockArrowBuffer } from "./mockData";
 
 export default function App() {
   const [data, setData] = createSignal<ArrayBuffer | null>(
-    createMockArrowBuffer(100)
+    createMockArrowBuffer(100),
   );
   const [isLive, setIsLive] = createSignal(false);
 
@@ -52,12 +52,12 @@ export default function App() {
           <button
             class="px-4 py-2 rounded transition-colors"
             classList={{
-              'bg-green-600 text-white hover:bg-green-700': isLive(),
-              'bg-gray-200 text-gray-700 hover:bg-gray-300': !isLive(),
+              "bg-green-600 text-white hover:bg-green-700": isLive(),
+              "bg-gray-200 text-gray-700 hover:bg-gray-300": !isLive(),
             }}
             onClick={toggleLive}
           >
-            {isLive() ? 'Live Updates: ON' : 'Live Updates: OFF'}
+            {isLive() ? "Live Updates: ON" : "Live Updates: OFF"}
           </button>
         </div>
 
@@ -66,27 +66,27 @@ export default function App() {
             data={data}
             config={{
               columns: {
-                id: { label: 'ID', width: 60 },
-                name: { label: 'Product Name', width: 180 },
-                price: { label: 'Price ($)', width: 100 },
-                quantity: { label: 'Qty', width: 80 },
-                in_stock: { label: 'In Stock', width: 70 },
+                id: { label: "ID", width: 60 },
+                name: { label: "Product Name", width: 180 },
+                price: { label: "Price ($)", width: 100 },
+                quantity: { label: "Qty", width: 80 },
+                in_stock: { label: "In Stock", width: 70 },
                 status: {
-                  label: 'Status',
+                  label: "Status",
                   width: 110,
                   statusColors: {
-                    'In Stock': 'green',
-                    'Low Stock': 'yellow',
-                    'Out of Stock': 'red',
-                    'Discontinued': 'gray',
+                    "In Stock": "green",
+                    "Low Stock": "yellow",
+                    "Out of Stock": "red",
+                    Discontinued: "gray",
                   },
                 },
-                updated_at: { label: 'Last Updated', width: 180 },
+                updated_at: { label: "Last Updated", width: 180 },
               },
-              defaultSort: { column: 'id', dir: 'asc' },
+              defaultSort: { column: "id", dir: "asc" },
               stickyHeader: true,
               stripedRows: true,
-              density: 'compact',
+              density: "compact",
             }}
             class="max-h-[600px]"
           />

@@ -1,4 +1,4 @@
-import { Component } from 'solid-js';
+import type { Component } from "solid-js";
 
 interface Props {
   onResize: (delta: number) => void;
@@ -18,12 +18,12 @@ export const ResizeHandle: Component<Props> = (props) => {
     };
 
     const onMouseUp = () => {
-      document.removeEventListener('mousemove', onMouseMove);
-      document.removeEventListener('mouseup', onMouseUp);
+      document.removeEventListener("mousemove", onMouseMove);
+      document.removeEventListener("mouseup", onMouseUp);
     };
 
-    document.addEventListener('mousemove', onMouseMove);
-    document.addEventListener('mouseup', onMouseUp);
+    document.addEventListener("mousemove", onMouseMove);
+    document.addEventListener("mouseup", onMouseUp);
   };
 
   return (

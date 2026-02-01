@@ -1,19 +1,27 @@
-import { DragDropProvider, DragDropSensors, useDragDropContext } from '@thisbeyond/solid-dnd';
-import type { Component, JSX } from 'solid-js';
-import { useWorkbench } from '../context';
-import type { DropPosition } from '../types';
+import {
+  DragDropProvider,
+  DragDropSensors,
+  useDragDropContext,
+} from "@thisbeyond/solid-dnd";
+import type { Component, JSX } from "solid-js";
+import { useWorkbench } from "../context";
+import type { DropPosition } from "../types";
 
 // Custom collision detector that finds the droppable the cursor is actually over
 // We use the dropPosition data that LeafPane sets via mouse tracking
-const collisionDetector = (draggable: any, droppables: any[], context: any) => {
+const collisionDetector = (
+  draggable: any,
+  droppables: any[],
+  _context: any,
+) => {
   // Exclude the droppable corresponding to the dragged tile
   const sourcePaneId = draggable.data?.paneId;
   const candidates = sourcePaneId
-    ? droppables.filter(d => d.data?.paneId !== sourcePaneId)
+    ? droppables.filter((d) => d.data?.paneId !== sourcePaneId)
     : droppables;
 
   // Find the droppable that has a dropPosition set (meaning cursor is over it)
-  const activeDroppable = candidates.find(d => d.data?.dropPosition != null);
+  const activeDroppable = candidates.find((d) => d.data?.dropPosition != null);
   if (activeDroppable) {
     return activeDroppable;
   }
@@ -61,7 +69,7 @@ const DndHandler: Component<Props> = (props) => {
     if (!position || !targetPaneId) return;
 
     // Don't allow center drops on non-closable tiles (would replace them)
-    if (position === 'center' && targetClosable === false) return;
+    if (position === "center" && targetClosable === false) return;
 
     if (specId) {
       // Dragging from picker - add new tile

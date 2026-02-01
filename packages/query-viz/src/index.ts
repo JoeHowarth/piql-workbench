@@ -1,27 +1,33 @@
 // Components
-export { DataFrameTable } from './components/DataFrameTable';
-export { TableHeader } from './components/TableHeader';
-export { TableBody } from './components/TableBody';
-export { TableCell } from './components/TableCell';
-export { ResizeHandle } from './components/ResizeHandle';
-export { ColumnFilter } from './components/ColumnFilter';
+
+export { ColumnFilter } from "./components/ColumnFilter";
+export { DataFrameTable } from "./components/DataFrameTable";
+export { ResizeHandle } from "./components/ResizeHandle";
+export { TableBody } from "./components/TableBody";
+export { TableCell } from "./components/TableCell";
+export { TableHeader } from "./components/TableHeader";
 
 // Hooks
-export { useArrowData } from './hooks/useArrowData';
-export { useTableState } from './hooks/useTableState';
-export { useDerivedRows } from './hooks/useDerivedRows';
+export { useArrowData } from "./hooks/useArrowData";
+export { useDerivedRows } from "./hooks/useDerivedRows";
+export { useTableState } from "./hooks/useTableState";
 
 // Utilities
-export { parseArrowBuffer, isNumericType, isTemporalType, isBooleanType } from './lib/arrow';
+export {
+  isBooleanType,
+  isNumericType,
+  isTemporalType,
+  parseArrowBuffer,
+} from "./lib/arrow";
 
 // Types
 export type {
+  ColumnConfig,
+  ColumnSchema,
+  FilterValue,
+  ParsedArrowData,
   SortDir,
   SortState,
-  FilterValue,
-  ColumnSchema,
-  ColumnConfig,
   TableConfig,
   TableState,
-  ParsedArrowData,
-} from './lib/types';
+} from "./lib/types";

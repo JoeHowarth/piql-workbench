@@ -1,6 +1,6 @@
-import type { Component } from 'solid-js';
-import { isNumericType, isTemporalType, isBooleanType } from '../lib/arrow';
-import type { ColumnConfig } from '../lib/types';
+import type { Component } from "solid-js";
+import { isBooleanType, isNumericType, isTemporalType } from "../lib/arrow";
+import type { ColumnConfig } from "../lib/types";
 
 interface Props {
   value: unknown;
@@ -13,10 +13,10 @@ interface Props {
 function formatValue(
   value: unknown,
   type: string,
-  config?: ColumnConfig
+  config?: ColumnConfig,
 ): string {
   if (value === null || value === undefined) {
-    return '-';
+    return "-";
   }
 
   if (isNumericType(type)) {
@@ -34,11 +34,11 @@ function formatValue(
   }
 
   if (isBooleanType(type)) {
-    const display = config?.booleanDisplay ?? 'checkmark';
-    if (display === 'checkmark') {
-      return value ? '✓' : '✗';
+    const display = config?.booleanDisplay ?? "checkmark";
+    if (display === "checkmark") {
+      return value ? "✓" : "✗";
     }
-    return value ? 'true' : 'false';
+    return value ? "true" : "false";
   }
 
   return String(value);
@@ -51,7 +51,7 @@ export const TableCell: Component<Props> = (props) => {
 
   const statusColor = () => {
     if (!props.config?.statusColors) return null;
-    const val = String(props.value ?? '');
+    const val = String(props.value ?? "");
     return props.config.statusColors[val] ?? null;
   };
 
@@ -59,19 +59,19 @@ export const TableCell: Component<Props> = (props) => {
     <td
       class="border-b border-gray-100 dark:border-gray-700 text-gray-900 dark:text-gray-100 truncate"
       classList={{
-        'px-3 py-1.5': !props.compact,
-        'px-2 py-1': props.compact,
-        'text-right tabular-nums': isNumeric(),
-        'text-center': isBool(),
-        'text-gray-400 dark:text-gray-500': isNull(),
-        'text-green-600 dark:text-green-400': statusColor() === 'green',
-        'text-red-600 dark:text-red-400': statusColor() === 'red',
-        'text-yellow-600 dark:text-yellow-400': statusColor() === 'yellow',
-        'text-blue-600 dark:text-blue-400': statusColor() === 'blue',
-        'text-gray-600 dark:text-gray-400': statusColor() === 'gray',
+        "px-3 py-1.5": !props.compact,
+        "px-2 py-1": props.compact,
+        "text-right tabular-nums": isNumeric(),
+        "text-center": isBool(),
+        "text-gray-400 dark:text-gray-500": isNull(),
+        "text-green-600 dark:text-green-400": statusColor() === "green",
+        "text-red-600 dark:text-red-400": statusColor() === "red",
+        "text-yellow-600 dark:text-yellow-400": statusColor() === "yellow",
+        "text-blue-600 dark:text-blue-400": statusColor() === "blue",
+        "text-gray-600 dark:text-gray-400": statusColor() === "gray",
       }}
-      style={{ width: `${props.width}px`, 'max-width': `${props.width}px` }}
-      title={String(props.value ?? '')}
+      style={{ width: `${props.width}px`, "max-width": `${props.width}px` }}
+      title={String(props.value ?? "")}
     >
       {formatValue(props.value, props.type, props.config)}
     </td>
