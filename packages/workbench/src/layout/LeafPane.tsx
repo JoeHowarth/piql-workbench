@@ -68,15 +68,15 @@ export const LeafPane: Component<Props> = (props) => {
   };
 
   const containerClass = () => {
-    const base = "relative flex flex-col h-full bg-white dark:bg-gray-800 rounded overflow-hidden transition-all duration-150";
+    const base = "relative flex flex-col h-full bg-white dark:bg-gray-800 rounded overflow-hidden transition-all duration-150 border-2";
     if (isBeingDragged()) {
       // pointer-events-none so collision detection sees through to tiles underneath
-      return `${base} border-2 border-blue-400 dark:border-blue-500 opacity-50 pointer-events-none`;
+      return `${base} border-blue-400 dark:border-blue-500 opacity-50 pointer-events-none`;
     }
     if (isHovered()) {
-      return `${base} border-2 border-blue-400 dark:border-blue-500 shadow-md dark:shadow-gray-900/50`;
+      return `${base} border-blue-400 dark:border-blue-500 shadow-md dark:shadow-gray-900/50`;
     }
-    return `${base} border border-gray-200 dark:border-gray-700`;
+    return `${base} border-gray-200 dark:border-gray-700`;
   };
 
   return (
