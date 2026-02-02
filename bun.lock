@@ -41,6 +41,16 @@
         "vite-plugin-solid": "^2.11.0",
       },
     },
+    "packages/piql-client": {
+      "name": "piql-client",
+      "version": "0.1.0",
+      "dependencies": {
+        "apache-arrow": "^18.0.0",
+      },
+      "devDependencies": {
+        "typescript": "^5.7.2",
+      },
+    },
     "packages/query-viz": {
       "name": "query-viz",
       "version": "0.1.0",
@@ -433,6 +443,8 @@
     "picomatch": ["picomatch@4.0.3", "", {}, "sha512-5gTmgEY/sqK6gFXLIsQNH19lWb4ebPDLA4SdLP7dsWkIXHWlG66oPuVvXSGFPppYZz8ZDZq0dYYrbHfBCVUb1Q=="],
 
     "pify": ["pify@2.3.0", "", {}, "sha512-udgsAY+fTnvv7kI7aaxbqwWNb0AHiB0qBO89PZKPkoTmGOgdbrHDKD+0B2X4uTfJ/FT1R09r9gTsjUjNJotuog=="],
+
+    "piql-client": ["piql-client@workspace:packages/piql-client"],
 
     "pirates": ["pirates@4.0.7", "", {}, "sha512-TfySrs/5nm8fQJDcBDuUng3VOUKsd7S+zqvbOTiGXHfxX4wK31ard+hoNuvkicM/2YFzlpDgABOevKSsB4G/FA=="],
 

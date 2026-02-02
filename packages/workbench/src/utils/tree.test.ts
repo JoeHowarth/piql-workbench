@@ -599,6 +599,99 @@ describe("updateSizes", () => {
 });
 
 // ============================================================================
+// Regression Tests
+// ============================================================================
+
+describe("regression: pixel sizes preserved on nested insert", () => {
+  // Bug: inserting a tile vertically into the left split was causing
+  // the root horizontal split's sizes to change, making Orders narrower
+
+  it("inserting into nested split does not affect parent's pixel sizes", () => {
+    // This matches the default workbench layout
+    const tree = split("root", "h", [{ px: 180 }, 100], [
+      split("left-split", "v", [{ px: 80 }, 100], [
+        leaf("time-pane", "time-controls"),
+        leaf("picker-pane", "picker"),
+      ]),
+      leaf("content-pane", "orders"),
+    ]);
+
+    // Insert a tile below the picker (vertical drop)
+    const result = insertTile(tree, "picker-pane", "bottom", "shipments");
+
+    // Root sizes should be UNCHANGED
+    const rootSplit = result as SplitPane;
+    expect(rootSplit.sizes).toEqual([{ px: 180 }, 100]);
+
+    // Left-split sizes should also be unchanged
+    const leftSplit = rootSplit.children[0] as SplitPane;
+    expect(leftSplit.sizes).toEqual([{ px: 80 }, 100]);
+
+    // The picker-pane should now be in a new split with shipments
+    const newSplit = leftSplit.children[1] as SplitPane;
+    expect(newSplit.type).toBe("split");
+    expect(newSplit.dir).toBe("v"); // bottom = vertical
+    expect(newSplit.sizes).toEqual([50, 50]); // default sizes for new split
+
+    assertTreeInvariants(result);
+  });
+
+  it("multiple nested inserts do not accumulate size changes", () => {
+    let tree: PaneNode = split("root", "h", [{ px: 180 }, 100], [
+      split("left-split", "v", [{ px: 80 }, 100], [
+        leaf("time-pane", "time-controls"),
+        leaf("picker-pane", "picker"),
+      ]),
+      leaf("content-pane", "orders"),
+    ]);
+
+    // Insert first tile below picker
+    tree = insertTile(tree, "picker-pane", "bottom", "shipments-1");
+    expect((tree as SplitPane).sizes).toEqual([{ px: 180 }, 100]);
+
+    // Insert second tile below picker (now picker is in a nested split)
+    tree = insertTile(tree, "picker-pane", "bottom", "shipments-2");
+    expect((tree as SplitPane).sizes).toEqual([{ px: 180 }, 100]);
+
+    // Insert third tile
+    tree = insertTile(tree, "picker-pane", "bottom", "shipments-3");
+    expect((tree as SplitPane).sizes).toEqual([{ px: 180 }, 100]);
+
+    // Root pixel size should still be exactly 180px
+    assertTreeInvariants(tree);
+  });
+
+  it("inserting horizontally into content area works correctly", () => {
+    const tree = split("root", "h", [{ px: 180 }, 100], [
+      split("left-split", "v", [{ px: 80 }, 100], [
+        leaf("time-pane", "time-controls"),
+        leaf("picker-pane", "picker"),
+      ]),
+      leaf("content-pane", "orders"),
+    ]);
+
+    // Insert to the right of orders (horizontal drop)
+    const result = insertTile(tree, "content-pane", "right", "inventory");
+
+    // Root structure changes - content-pane is now a split
+    const rootSplit = result as SplitPane;
+    expect(rootSplit.sizes).toEqual([{ px: 180 }, 100]);
+
+    // Left-split unchanged
+    const leftSplit = rootSplit.children[0] as SplitPane;
+    expect(leftSplit.sizes).toEqual([{ px: 80 }, 100]);
+
+    // Content area is now a split
+    const contentSplit = rootSplit.children[1] as SplitPane;
+    expect(contentSplit.type).toBe("split");
+    expect(contentSplit.dir).toBe("h"); // right = horizontal
+    expect(contentSplit.sizes).toEqual([50, 50]);
+
+    assertTreeInvariants(result);
+  });
+});
+
+// ============================================================================
 // Helper
 // ============================================================================
 

@@ -7,7 +7,14 @@
       "WebSearch",
       "Bash(git add:*)",
       "Bash(git commit -m \"$(cat <<''EOF''\nInitial commit: query-viz table component\n\nSolidJS component for rendering Arrow IPC dataframes with:\n- Schema-inferred cell rendering\n- Client-side sort/filter with multi-select\n- Column resizing\n- Live update support via reconcile\nEOF\n)\")",
-      "Bash(bun install:*)"
+      "Bash(bun install:*)",
+      "Bash(bun run build:*)",
+      "Bash(bun run dev:*)",
+      "Bash(git commit:*)",
+      "Bash(bun add:*)",
+      "Bash(bunx biome check:*)",
+      "Bash(bunx playwright install:*)",
+      "Bash(bunx playwright test:*)"
     ],
     "deny": [],
     "ask": []
