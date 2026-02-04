@@ -28,6 +28,7 @@
       "name": "workbench-demo",
       "version": "0.1.0",
       "dependencies": {
+        "piql-client": "workspace:*",
         "query-viz": "workspace:*",
         "solid-js": "^1.9.3",
         "workbench": "workspace:*",
@@ -50,6 +51,12 @@
       "devDependencies": {
         "typescript": "^5.7.2",
       },
+      "peerDependencies": {
+        "solid-js": "^1.0.0",
+      },
+      "optionalPeers": [
+        "solid-js",
+      ],
     },
     "packages/query-viz": {
       "name": "query-viz",

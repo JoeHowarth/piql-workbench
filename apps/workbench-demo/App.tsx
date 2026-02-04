@@ -1,12 +1,15 @@
 import type { PaneNode, TileSpec } from "workbench";
 import { Workbench } from "workbench";
+import { PIQL_URL, PiqlProvider } from "./piql";
 import { pickerTile } from "./tiles/PickerTile";
+import { queryTile } from "./tiles/QueryTile";
 import { tableTile } from "./tiles/TableTile";
 import { timeControlsTile } from "./tiles/TimeControlsTile";
 
 const specs: TileSpec[] = [
   pickerTile(),
   timeControlsTile(),
+  queryTile(),
   tableTile("orders", { label: "Orders", rowCount: 100 }),
   tableTile("inventory", { label: "Inventory", rowCount: 75 }),
   tableTile("shipments", { label: "Shipments", rowCount: 50 }),
@@ -34,8 +37,10 @@ const initialLayout: PaneNode = {
 
 export default function App() {
   return (
-    <div class="h-screen bg-gray-100 dark:bg-gray-950 p-2">
-      <Workbench specs={specs} initialLayout={initialLayout} class="h-full" />
-    </div>
+    <PiqlProvider url={PIQL_URL}>
+      <div class="h-screen bg-gray-100 dark:bg-gray-950 p-2">
+        <Workbench specs={specs} initialLayout={initialLayout} class="h-full" />
+      </div>
+    </PiqlProvider>
   );
 }
