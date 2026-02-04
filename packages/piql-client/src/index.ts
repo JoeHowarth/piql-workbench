@@ -2,4 +2,5 @@
 export type { Table } from "apache-arrow";
 export type { PiqlClientOptions, SubscriptionCallback } from "./client";
 export { PiqlClient } from "./client";
-export type { ClientMessage, ServerMessage } from "./protocol";
+export type { ClientMessage, ServerMessage, ResultHeader } from "./protocol";
+export { decodeBinaryResult } from "./protocol";

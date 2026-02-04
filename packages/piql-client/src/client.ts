@@ -1,5 +1,9 @@
 import { type Table, tableFromIPC } from "apache-arrow";
-import type { ClientMessage, ServerMessage } from "./protocol";
+import {
+  decodeBinaryResult,
+  type ClientMessage,
+  type ServerMessage,
+} from "./protocol";
 
 export type SubscriptionCallback = (table: Table, tick: number) => void;
 
@@ -44,9 +48,6 @@ export class PiqlClient {
   private pendingListDfs: ((names: string[]) => void) | null = null;
   private pendingQuery: ((table: Table) => void) | null = null;
   private pendingQueryReject: ((error: Error) => void) | null = null;
-
-  // For handling header + binary message pairs
-  private pendingHeader: ServerMessage | null = null;
 
   constructor(url: string, options: PiqlClientOptions = {}) {
     this.url = url;
@@ -187,25 +188,12 @@ export class PiqlClient {
         }
         break;
       }
-
-      case "result_header":
-      case "query_result_header":
-        // Store header, wait for binary
-        this.pendingHeader = msg;
-        break;
     }
   }
 
   private handleBinary(buffer: ArrayBuffer): void {
-    const header = this.pendingHeader;
-    this.pendingHeader = null;
-
-    if (!header) {
-      console.warn("Received binary without header");
-      return;
-    }
-
-    const table = tableFromIPC(buffer);
+    const { header, payload } = decodeBinaryResult(buffer);
+    const table = tableFromIPC(payload);
 
     if (header.type === "result_header") {
       // Subscription result
