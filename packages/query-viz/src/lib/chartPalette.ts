@@ -24,6 +24,25 @@ export const CHART_GRID = {
   containLabel: true,
 };
 
+// Common axis styling - subtle grid lines
+export const CHART_AXIS_STYLE = {
+  axisLine: {
+    lineStyle: { color: "#4b5563" }, // gray-600
+  },
+  axisTick: {
+    lineStyle: { color: "#4b5563" },
+  },
+  splitLine: {
+    lineStyle: {
+      color: "#374151", // gray-700 - subtle grid
+      type: "dashed" as const,
+    },
+  },
+  axisLabel: {
+    color: "#9ca3af", // gray-400
+  },
+};
+
 // Text style for consistency
 export const CHART_TEXT_STYLE = {
   fontFamily: "system-ui, -apple-system, sans-serif",

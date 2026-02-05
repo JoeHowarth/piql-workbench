@@ -15,6 +15,7 @@ import {
   CHART_PALETTE,
   CHART_GRID,
   CHART_TEXT_STYLE,
+  CHART_AXIS_STYLE,
   getSeriesColor,
 } from "../lib/chartPalette";
 
@@ -102,8 +103,9 @@ export function useLineChartOptions(
         // For value axes (e.g., block numbers), auto-scale to data range
         min: cfg.xAxis.min ?? (xType === "value" ? "dataMin" : undefined),
         max: cfg.xAxis.max ?? (xType === "value" ? "dataMax" : undefined),
+        ...CHART_AXIS_STYLE,
       },
-      yAxis: yAxes,
+      yAxis: (yAxes as object[]).map((y) => ({ ...y, ...CHART_AXIS_STYLE })),
       series: series as EChartsOption["series"],
     };
   });
@@ -142,9 +144,11 @@ export function useBarChartOptions(
       type: "category" as const,
       data: categories,
       name: cfg.categoryAxis.label,
+      ...CHART_AXIS_STYLE,
     };
     const valueAxisConfig = {
       type: "value" as const,
+      ...CHART_AXIS_STYLE,
     };
 
     return {
@@ -181,7 +185,7 @@ export function useScatterChartOptions(
     if (rows.length === 0) return null;
 
     const { x, y, size } = cfg.dimensions;
-    const [minSize, maxSize] = cfg.sizeRange ?? [5, 30];
+    const [minSize, maxSize] = cfg.sizeRange ?? [8, 40];
 
     // Build scatter data points
     const scatterData = rows.map((r) => {
@@ -190,8 +194,12 @@ export function useScatterChartOptions(
       return point;
     });
 
+    // Calculate base symbol size - scales inversely with data count
+    // Few points = larger dots, many points = smaller dots
+    const baseSize = size ? undefined : Math.max(8, Math.min(18, 200 / Math.sqrt(rows.length)));
+
     // Calculate size normalization if size dimension is present
-    let symbolSize: number | ((val: number[]) => number) = 10;
+    let symbolSize: number | ((val: number[]) => number) = baseSize ?? 12;
     if (size) {
       const sizeValues = rows
         .map((r) => Number(r[size]))
@@ -219,22 +227,30 @@ export function useScatterChartOptions(
       xAxis: {
         type: "value" as const,
         name: cfg.xAxis?.label ?? x,
-        // Scatter: auto-scale to data range by default (not 0-based)
-        min: cfg.xAxis?.min ?? "dataMin",
-        max: cfg.xAxis?.max ?? "dataMax",
+        // Scatter: auto-scale with 5% padding
+        scale: true,
+        min: cfg.xAxis?.min,
+        max: cfg.xAxis?.max,
+        ...CHART_AXIS_STYLE,
       },
       yAxis: {
         type: "value" as const,
         name: cfg.yAxis?.label ?? y,
-        // Scatter: auto-scale to data range by default (not 0-based)
-        min: cfg.yAxis?.min ?? "dataMin",
-        max: cfg.yAxis?.max ?? "dataMax",
+        // Scatter: auto-scale with 5% padding
+        scale: true,
+        min: cfg.yAxis?.min,
+        max: cfg.yAxis?.max,
+        ...CHART_AXIS_STYLE,
       },
       series: [
         {
           type: "scatter" as const,
           data: scatterData,
           symbolSize,
+          itemStyle: {
+            shadowBlur: 4,
+            shadowColor: "rgba(84, 112, 198, 0.5)",
+          },
         },
       ] as EChartsOption["series"],
     };
