@@ -1,7 +1,8 @@
 import { DataFrameTable } from "query-viz";
 import { Show } from "solid-js";
 import { usePaneId, type TileSpec } from "workbench";
-import { usePiqlClient } from "../piql";
+import { CodeInput } from "../components/CodeInput";
+import { client } from "../piql";
 import {
   getQueryState,
   setQueryLoading,
@@ -16,7 +17,6 @@ export const queryTile = (): TileSpec => ({
 });
 
 function QueryContent() {
-  const client = usePiqlClient();
   const paneId = usePaneId();
 
   // Get reactive state from store
@@ -36,38 +36,24 @@ function QueryContent() {
     }
   };
 
-  const handleKeyDown = (e: KeyboardEvent) => {
-    if (e.key === "Enter" && !e.shiftKey) {
-      e.preventDefault();
-      submit();
-    }
-  };
-
   return (
     <div class="h-full flex flex-col">
-      <form
-        onSubmit={(e) => {
-          e.preventDefault();
-          submit();
-        }}
-        class="flex gap-2 p-2 border-b border-gray-200 dark:border-gray-700"
-      >
-        <input
-          type="text"
+      <div class="flex gap-2 p-2 border-b border-gray-200 dark:border-gray-700">
+        <CodeInput
           value={state().queryText}
-          onInput={(e) => setQueryText(paneId, e.currentTarget.value)}
-          onKeyDown={handleKeyDown}
-          placeholder="Enter query..."
-          class="flex-1 px-2 py-1 text-sm border border-gray-300 dark:border-gray-600 rounded bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-1 focus:ring-blue-500"
+          onChange={(v) => setQueryText(paneId, v)}
+          onSubmit={submit}
+          class="flex-1 min-h-[32px]"
         />
         <button
-          type="submit"
+          type="button"
           disabled={state().loading}
-          class="px-3 py-1 text-sm bg-blue-500 hover:bg-blue-600 disabled:bg-blue-300 text-white rounded transition-colors"
+          onClick={submit}
+          class="px-3 py-1 text-sm bg-blue-500 hover:bg-blue-600 disabled:bg-blue-300 text-white rounded transition-colors self-start"
         >
           {state().loading ? "..." : "Run"}
         </button>
-      </form>
+      </div>
 
       <div class="flex-1 overflow-hidden">
         <Show when={state().error}>

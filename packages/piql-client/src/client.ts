@@ -1,209 +1,98 @@
 import { type Table, tableFromIPC } from "apache-arrow";
-import {
-  decodeBinaryResult,
-  type ClientMessage,
-  type ServerMessage,
-} from "./protocol";
+import createClient from "openapi-fetch";
+import type { paths } from "./api";
 
-export type SubscriptionCallback = (table: Table, tick: number) => void;
+export type PiqlClient = ReturnType<typeof createPiqlClient>;
 
-export interface PiqlClientOptions {
-  /** Called when connection is established */
-  onConnect?: () => void;
-  /** Called when connection is lost */
-  onDisconnect?: () => void;
-  /** Called on errors */
-  onError?: (error: Error) => void;
-}
+export function createPiqlClient(baseUrl: string) {
+  const api = createClient<paths>({ baseUrl });
 
-/**
- * WebSocket client for PiQL server
- *
- * @example
- * ```ts
- * const client = new PiqlClient("ws://localhost:9000");
- * await client.connect();
- *
- * // List available dataframes
- * const dfs = await client.listDfs();
- *
- * // Subscribe to query results
- * client.subscribe("rich", "entities.filter($gold > 100)", (table, tick) => {
- *   console.log(`Tick ${tick}:`, table.numRows, "rows");
- * });
- *
- * // One-off query
- * const result = await client.query("entities.head(10)");
- * ```
- */
-export class PiqlClient {
-  private ws: WebSocket | null = null;
-  private url: string;
-  private options: PiqlClientOptions;
+  return {
+    /** List available dataframes */
+    async listDataframes(): Promise<string[]> {
+      const { data, error } = await api.GET("/dataframes");
+      if (error) throw new Error("Failed to list dataframes");
+      return data.names;
+    },
 
-  // Subscription callbacks
-  private subscriptions = new Map<string, SubscriptionCallback>();
+    /** Execute a one-off query, returns Arrow Table */
+    async query(query: string): Promise<Table> {
+      const res = await fetch(`${baseUrl}/query`, {
+        method: "POST",
+        headers: { "Content-Type": "text/plain" },
+        body: query,
+      });
 
-  // Pending requests (for request/response pattern)
-  private pendingListDfs: ((names: string[]) => void) | null = null;
-  private pendingQuery: ((table: Table) => void) | null = null;
-  private pendingQueryReject: ((error: Error) => void) | null = null;
-
-  constructor(url: string, options: PiqlClientOptions = {}) {
-    this.url = url;
-    this.options = options;
-  }
-
-  /** Connect to the server */
-  connect(): Promise<void> {
-    return new Promise((resolve, reject) => {
-      this.ws = new WebSocket(this.url);
-
-      this.ws.onopen = () => {
-        this.options.onConnect?.();
-        resolve();
-      };
-
-      this.ws.onerror = (_event) => {
-        const error = new Error("WebSocket error");
-        this.options.onError?.(error);
-        reject(error);
-      };
-
-      this.ws.onclose = () => {
-        this.options.onDisconnect?.();
-        this.ws = null;
-      };
-
-      this.ws.onmessage = (event) => {
-        this.handleMessage(event.data);
-      };
-    });
-  }
-
-  /** Disconnect from the server */
-  disconnect(): void {
-    this.ws?.close();
-    this.ws = null;
-  }
-
-  /** Check if connected */
-  get connected(): boolean {
-    return this.ws?.readyState === WebSocket.OPEN;
-  }
-
-  /** List available dataframes */
-  listDfs(): Promise<string[]> {
-    return new Promise((resolve, reject) => {
-      if (!this.connected) {
-        reject(new Error("Not connected"));
-        return;
+      if (!res.ok) {
+        const err = await res.json();
+        throw new Error(err.error ?? "Query failed");
       }
 
-      this.pendingListDfs = resolve;
-      this.send({ type: "list_dfs" });
-    });
-  }
+      const buffer = await res.arrayBuffer();
+      return tableFromIPC(new Uint8Array(buffer));
+    },
 
-  /** Subscribe to a query's results */
-  subscribe(name: string, query: string, callback: SubscriptionCallback): void {
-    if (!this.connected) {
-      throw new Error("Not connected");
-    }
+    /** Subscribe to query results via SSE */
+    subscribe(
+      query: string,
+      onData: (table: Table) => void,
+      onError?: (error: Error) => void,
+    ): () => void {
+      const url = `${baseUrl}/subscribe?query=${encodeURIComponent(query)}`;
+      const eventSource = new EventSource(url);
 
-    this.subscriptions.set(name, callback);
-    this.send({ type: "subscribe", name, query });
-  }
+      eventSource.onmessage = (event) => {
+        const bytes = Uint8Array.from(atob(event.data), (c) => c.charCodeAt(0));
+        const table = tableFromIPC(bytes);
+        onData(table);
+      };
 
-  /** Unsubscribe from a query */
-  unsubscribe(name: string): void {
-    if (!this.connected) {
-      return;
-    }
+      eventSource.onerror = () => {
+        onError?.(new Error("SSE connection error"));
+      };
 
-    this.subscriptions.delete(name);
-    this.send({ type: "unsubscribe", name });
-  }
+      return () => eventSource.close();
+    },
 
-  /** Execute a one-off query */
-  query(query: string): Promise<Table> {
-    return new Promise((resolve, reject) => {
-      if (!this.connected) {
-        reject(new Error("Not connected"));
-        return;
+    /** Natural language to PiQL query */
+    async ask(
+      question: string,
+      execute?: boolean,
+    ): Promise<{ query: string; table?: Table }> {
+      const url = execute
+        ? `${baseUrl}/ask?execute=true`
+        : `${baseUrl}/ask`;
+
+      console.log("[ask] request:", { url, question, execute });
+
+      const res = await fetch(url, {
+        method: "POST",
+        headers: { "Content-Type": "text/plain" },
+        body: question,
+      });
+
+      console.log("[ask] response:", {
+        status: res.status,
+        headers: Object.fromEntries(res.headers.entries()),
+      });
+
+      if (!res.ok) {
+        const err = await res.json();
+        console.log("[ask] error:", err);
+        throw new Error(err.error ?? "Ask failed");
       }
 
-      this.pendingQuery = resolve;
-      this.pendingQueryReject = reject;
-      this.send({ type: "query", query });
-    });
-  }
+      const query = res.headers.get("X-Piql-Query") ?? "";
+      console.log("[ask] X-Piql-Query:", query);
 
-  private send(msg: ClientMessage): void {
-    this.ws?.send(JSON.stringify(msg));
-  }
-
-  private handleMessage(data: unknown): void {
-    // Binary message - Arrow IPC data
-    if (data instanceof Blob) {
-      data.arrayBuffer().then((buffer) => this.handleBinary(buffer));
-      return;
-    }
-
-    if (data instanceof ArrayBuffer) {
-      this.handleBinary(data);
-      return;
-    }
-
-    // Text message - JSON
-    if (typeof data === "string") {
-      const msg = JSON.parse(data) as ServerMessage;
-      this.handleServerMessage(msg);
-    }
-  }
-
-  private handleServerMessage(msg: ServerMessage): void {
-    switch (msg.type) {
-      case "dfs":
-        this.pendingListDfs?.(msg.names);
-        this.pendingListDfs = null;
-        break;
-
-      case "subscribed":
-        // Could add a callback for this if needed
-        break;
-
-      case "unsubscribed":
-        // Could add a callback for this if needed
-        break;
-
-      case "error": {
-        const error = new Error(msg.message);
-        if (this.pendingQueryReject) {
-          this.pendingQueryReject(error);
-          this.pendingQuery = null;
-          this.pendingQueryReject = null;
-        } else {
-          this.options.onError?.(error);
-        }
-        break;
+      if (execute) {
+        const buffer = await res.arrayBuffer();
+        console.log("[ask] response body size:", buffer.byteLength);
+        const table = tableFromIPC(new Uint8Array(buffer));
+        return { query, table };
       }
-    }
-  }
 
-  private handleBinary(buffer: ArrayBuffer): void {
-    const { header, payload } = decodeBinaryResult(buffer);
-    const table = tableFromIPC(payload);
-
-    if (header.type === "result_header") {
-      // Subscription result
-      const callback = this.subscriptions.get(header.name);
-      callback?.(table, header.tick);
-    } else if (header.type === "query_result_header") {
-      // One-off query result
-      this.pendingQuery?.(table);
-      this.pendingQuery = null;
-      this.pendingQueryReject = null;
-    }
-  }
+      return { query };
+    },
+  };
 }

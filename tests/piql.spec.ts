@@ -5,23 +5,26 @@ test.describe("PiQL Demo - Query Tile State Persistence", () => {
     await page.goto("/?server=mock");
   });
 
-  test("query tile renders with empty state", async ({ page }) => {
-    const queryInput = page.locator('input[placeholder="Enter query..."]');
-    await expect(queryInput).toBeVisible();
-    await expect(queryInput).toHaveValue("");
+  test("query tile renders with CodeMirror editor", async ({ page }) => {
+    const editor = page.locator(".cm-editor");
+    await expect(editor).toBeVisible();
   });
 
-  test("query text persists after entering", async ({ page }) => {
-    const queryInput = page.locator('input[placeholder="Enter query..."]');
-    await queryInput.fill("test.head(10)");
-    await expect(queryInput).toHaveValue("test.head(10)");
+  test("query text can be entered and persists", async ({ page }) => {
+    const editor = page.locator(".cm-editor .cm-content");
+    await editor.click();
+    await page.keyboard.type("test.head(10)");
+
+    // Verify text appears in the editor
+    await expect(page.locator(".cm-editor")).toContainText("test.head(10)");
   });
 
   test("query results appear after running query", async ({ page }) => {
-    const queryInput = page.locator('input[placeholder="Enter query..."]');
+    const editor = page.locator(".cm-editor .cm-content");
     const runButton = page.getByRole("button", { name: "Run" });
 
-    await queryInput.fill("items.head(5)");
+    await editor.click();
+    await page.keyboard.type("items.head(5)");
     await runButton.click();
 
     // Wait for results (mock has 300-500ms delay)
@@ -32,10 +35,11 @@ test.describe("PiQL Demo - Query Tile State Persistence", () => {
     page,
   }) => {
     // Enter query and run it
-    const queryInput = page.locator('input[placeholder="Enter query..."]');
+    const editor = page.locator(".cm-editor .cm-content");
     const runButton = page.getByRole("button", { name: "Run" });
 
-    await queryInput.fill("my-test-query.head(10)");
+    await editor.click();
+    await page.keyboard.type("my-test-query.head(10)");
     await runButton.click();
 
     // Wait for table to appear
@@ -55,14 +59,17 @@ test.describe("PiQL Demo - Query Tile State Persistence", () => {
     await page.waitForTimeout(200);
 
     // Query text and results should still be there
-    await expect(queryInput).toHaveValue("my-test-query.head(10)");
+    await expect(page.locator(".cm-editor")).toContainText(
+      "my-test-query.head(10)",
+    );
     await expect(page.locator("table")).toBeVisible();
   });
 
   test("state persists when adding second query tile", async ({ page }) => {
     // Enter query in first tile
-    const allInputs = () => page.locator('input[placeholder="Enter query..."]');
-    await allInputs().first().fill("first-query");
+    const editor = page.locator(".cm-editor .cm-content").first();
+    await editor.click();
+    await page.keyboard.type("first-query");
 
     // Run the query
     await page.getByRole("button", { name: "Run" }).first().click();
@@ -79,13 +86,20 @@ test.describe("PiQL Demo - Query Tile State Persistence", () => {
 
     await page.waitForTimeout(300);
 
-    // Should now have two query inputs
-    await expect(allInputs()).toHaveCount(2);
+    // Should now have two editors
+    await expect(page.locator(".cm-editor")).toHaveCount(2);
 
-    // First input should still have its query (state preserved)
-    await expect(allInputs().first()).toHaveValue("first-query");
+    // First editor should still have its query (state preserved)
+    await expect(page.locator(".cm-editor").first()).toContainText(
+      "first-query",
+    );
 
-    // Second input should be empty (new tile)
-    await expect(allInputs().nth(1)).toHaveValue("");
+    // Second editor should be empty (new tile)
+    const secondEditor = page.locator(".cm-editor").nth(1);
+    const secondContent = await secondEditor
+      .locator(".cm-content")
+      .textContent();
+    // CodeMirror has some whitespace, but shouldn't have our query text
+    expect(secondContent?.trim() || "").toBe("");
   });
 });

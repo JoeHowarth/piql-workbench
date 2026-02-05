@@ -1,10 +1,10 @@
 import type { PaneNode, TileSpec } from "workbench";
 import { Workbench } from "workbench";
-import { PIQL_URL, PiqlProvider } from "./piql";
+import { askTile } from "./tiles/AskTile";
 import { pickerTile } from "./tiles/PickerTile";
 import { queryTile } from "./tiles/QueryTile";
 
-const specs: TileSpec[] = [pickerTile(), queryTile()];
+const specs: TileSpec[] = [pickerTile(), queryTile(), askTile()];
 
 const initialLayout: PaneNode = {
   type: "split",
@@ -19,10 +19,8 @@ const initialLayout: PaneNode = {
 
 export default function App() {
   return (
-    <PiqlProvider url={PIQL_URL}>
-      <div class="h-screen bg-gray-100 dark:bg-gray-950 p-2">
-        <Workbench specs={specs} initialLayout={initialLayout} class="h-full" />
-      </div>
-    </PiqlProvider>
+    <div class="h-screen bg-gray-100 dark:bg-gray-950 p-2">
+      <Workbench specs={specs} initialLayout={initialLayout} class="h-full" />
+    </div>
   );
 }
