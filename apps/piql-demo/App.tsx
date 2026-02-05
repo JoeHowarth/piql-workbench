@@ -1,11 +1,15 @@
+import type { Table } from "apache-arrow";
 import type { PaneNode, TileSpec } from "workbench";
 import { Workbench } from "workbench";
 import { client } from "./piql";
 import { setQueryLoading, setQueryResult, setQueryText } from "./queryStore";
 import {
+  type VizType,
   setSmartVizGeneratedQuery,
   setSmartVizLoading,
+  setSmartVizQuestion,
   setSmartVizResult,
+  setVizType,
 } from "./smartVizStore";
 import { chartTile } from "./tiles/ChartTile";
 import { dataframesTile } from "./tiles/DataFramesTile";
@@ -75,10 +79,32 @@ function handleTileAdded(paneId: string, specId: string, initialData?: unknown) 
   }
 
   if (specId === "smartviz" && initialData && typeof initialData === "object") {
-    const data = initialData as { query?: string; execute?: boolean };
+    const data = initialData as {
+      query?: string;
+      execute?: boolean;
+      vizType?: VizType;
+      question?: string;
+      table?: Table;
+    };
+
+    // Set viz type if provided (from duplicate)
+    if (data.vizType) {
+      setVizType(paneId, data.vizType);
+    }
+
+    // Set question if provided (from duplicate)
+    if (data.question) {
+      setSmartVizQuestion(paneId, data.question);
+    }
+
     if (data.query) {
       setSmartVizGeneratedQuery(paneId, data.query);
-      if (data.execute) {
+
+      // If table provided directly (from duplicate), use it
+      if (data.table) {
+        setSmartVizResult(paneId, data.query, data.table, null);
+      } else if (data.execute) {
+        // Otherwise execute the query
         setSmartVizLoading(paneId, true);
         client
           .query(data.query)

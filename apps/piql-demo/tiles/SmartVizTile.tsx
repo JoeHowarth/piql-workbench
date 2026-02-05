@@ -10,8 +10,8 @@ import {
   isTemporalType,
   useArrowData,
 } from "query-viz";
-import { createMemo, For, Match, Show, Switch } from "solid-js";
-import { type TileSpec, usePaneId } from "workbench";
+import { createMemo, createSignal, For, Match, Show, Switch } from "solid-js";
+import { type TileSpec, usePaneId, useWorkbench } from "workbench";
 import {
   type VizType,
   getSmartVizState,
@@ -44,9 +44,76 @@ const PROMPT_PREFIXES: Record<VizType, string> = {
   scatter: "IMPORTANT: The result must have 2-3 numeric columns for x, y, and optionally size dimensions. Return individual data points, not aggregations.",
 };
 
+/** Format first N rows of table as text for context */
+function formatSampleRows(table: import("apache-arrow").Table, n = 5): string {
+  const cols = table.schema.fields.map((f) => f.name);
+  const rows: string[] = [cols.join("\t")];
+  const len = Math.min(n, table.numRows);
+  for (let i = 0; i < len; i++) {
+    const row = cols.map((col) => String(table.getChild(col)?.get(i) ?? ""));
+    rows.push(row.join("\t"));
+  }
+  return rows.join("\n");
+}
+
 function SmartVizContent() {
   const paneId = usePaneId();
+  const { addTile } = useWorkbench();
   const state = () => getSmartVizState(paneId);
+
+  const duplicate = () => {
+    const s = state();
+    addTile("smartviz", paneId, "bottom", {
+      vizType: s.vizType,
+      question: s.question,
+      query: s.generatedQuery,
+      table: s.table,
+    });
+  };
+
+  const [refinement, setRefinement] = createSignal("");
+
+  const submitRefinement = async () => {
+    const r = refinement().trim();
+    if (!r) return;
+
+    const s = state();
+    if (!s.table) return;
+
+    setSmartVizLoading(paneId, true);
+
+    try {
+      // Build context from previous state
+      const sampleRows = formatSampleRows(s.table, 5);
+      const context = `Previous question: ${s.question}
+Generated PiQL query: ${s.generatedQuery}
+Result sample (first 5 rows):
+${sampleRows}
+
+User's follow-up request: ${r}`;
+
+      const prefix = PROMPT_PREFIXES[s.vizType];
+      const fullQuestion = prefix ? `${prefix}\n\n${context}` : context;
+
+      // Step 1: Get the generated query (no execution)
+      const { query } = await client.ask(fullQuestion, false);
+      setSmartVizGeneratedQuery(paneId, query);
+      setSmartVizQuestion(paneId, r);
+
+      // Step 2: Execute the query separately
+      const table = await client.query(query);
+      setSmartVizResult(paneId, query, table, null);
+      setRefinement("");
+    } catch (e) {
+      // Query is already set, just show the error
+      setSmartVizResult(
+        paneId,
+        state().generatedQuery,
+        null,
+        e instanceof Error ? e : new Error(String(e)),
+      );
+    }
+  };
 
   const submitQuestion = async () => {
     const q = state().question.trim();
@@ -57,12 +124,19 @@ function SmartVizContent() {
     try {
       const prefix = PROMPT_PREFIXES[state().vizType];
       const fullQuestion = prefix ? `${prefix}\n\nUser question: ${q}` : q;
-      const { query, table } = await client.ask(fullQuestion, true);
-      setSmartVizResult(paneId, query, table ?? null, null);
+
+      // Step 1: Get the generated query (no execution)
+      const { query } = await client.ask(fullQuestion, false);
+      setSmartVizGeneratedQuery(paneId, query);
+
+      // Step 2: Execute the query separately
+      const table = await client.query(query);
+      setSmartVizResult(paneId, query, table, null);
     } catch (e) {
+      // Query is already set, just show the error
       setSmartVizResult(
         paneId,
-        "",
+        state().generatedQuery,
         null,
         e instanceof Error ? e : new Error(String(e)),
       );
@@ -177,6 +251,16 @@ function SmartVizContent() {
             </button>
           )}
         </For>
+        <div class="flex-1" />
+        <button
+          type="button"
+          onClick={duplicate}
+          class="flex items-center gap-1 px-2 py-1 text-sm text-gray-600 dark:text-gray-300 hover:text-gray-800 dark:hover:text-gray-100 bg-gray-100 dark:bg-gray-800 hover:bg-gray-200 dark:hover:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded transition-colors"
+          title="Duplicate this tile"
+        >
+          <span>⧉</span>
+          <span>Duplicate</span>
+        </button>
       </div>
 
       {/* Question input */}
@@ -285,6 +369,37 @@ function SmartVizContent() {
           </div>
         </Show>
       </div>
+
+      {/* Refinement input - appears when there are results */}
+      <Show when={state().table && !state().loading}>
+        <div class="flex gap-2 p-2 border-t border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-900">
+          <textarea
+            value={refinement()}
+            onInput={(e) => {
+              setRefinement(e.currentTarget.value);
+              e.currentTarget.style.height = "auto";
+              e.currentTarget.style.height = `${e.currentTarget.scrollHeight}px`;
+            }}
+            onKeyDown={(e) => {
+              if (e.key === "Enter" && !e.shiftKey) {
+                e.preventDefault();
+                submitRefinement();
+              }
+            }}
+            placeholder="Refine: filter, group, add columns..."
+            rows={1}
+            class="flex-1 px-2 py-1 text-sm border border-gray-300 dark:border-gray-600 rounded bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 resize-none overflow-hidden"
+          />
+          <button
+            type="button"
+            disabled={state().loading || !refinement().trim()}
+            onClick={submitRefinement}
+            class="px-3 py-1 text-sm bg-green-500 hover:bg-green-600 disabled:bg-green-300 text-white rounded transition-colors self-start"
+          >
+            Refine
+          </button>
+        </div>
+      </Show>
     </div>
   );
 }
