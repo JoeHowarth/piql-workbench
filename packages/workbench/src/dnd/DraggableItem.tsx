@@ -6,10 +6,15 @@ interface Props {
   specId: string;
   children: JSX.Element;
   class?: string;
+  /** Optional data to pass to the new tile when created */
+  initialData?: unknown;
 }
 
 export const DraggableItem: Component<Props> = (props) => {
-  const draggable = createDraggable(props.id, { specId: props.specId });
+  const draggable = createDraggable(props.id, {
+    specId: props.specId,
+    initialData: props.initialData,
+  });
 
   return (
     <div

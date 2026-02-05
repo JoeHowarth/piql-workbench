@@ -48,6 +48,7 @@ export interface WorkbenchContextValue {
     specId: string,
     targetPaneId: string,
     position: DropPosition,
+    initialData?: unknown,
   ) => void;
   removePane: (paneId: string) => void;
   movePane: (
@@ -63,4 +64,6 @@ export interface WorkbenchProps {
   specs: TileSpec[];
   initialLayout: PaneNode;
   class?: string;
+  /** Called when a new tile is added via drag-drop */
+  onTileAdded?: (paneId: string, specId: string, initialData?: unknown) => void;
 }

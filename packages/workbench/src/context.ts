@@ -21,6 +21,7 @@ export function useWorkbench(): WorkbenchContextValue {
 export function createWorkbenchContext(
   initialSpecs: TileSpec[],
   initialLayout: PaneNode,
+  onTileAdded?: (paneId: string, specId: string, initialData?: unknown) => void,
 ): {
   Provider: typeof WorkbenchContext.Provider;
   value: WorkbenchContextValue;
@@ -42,11 +43,21 @@ export function createWorkbenchContext(
     specId: string,
     targetPaneId: string,
     position: DropPosition,
+    initialData?: unknown,
   ) => {
     const current = applyOverridesToTree();
     if (!current) return;
     setSizesOverride(new Map()); // Clear overrides
-    setLayout(insertTile(current, targetPaneId, position, specId));
+
+    const { tree, newPaneId } = insertTile(current, targetPaneId, position, specId);
+    setLayout(tree);
+
+    // Notify about tile creation (for initializing tile state)
+    // For center drops, newPaneId is null but the targetPaneId is reused
+    if (onTileAdded) {
+      const paneId = newPaneId ?? targetPaneId;
+      onTileAdded(paneId, specId, initialData);
+    }
   };
 
   const removePaneAction = (paneId: string) => {

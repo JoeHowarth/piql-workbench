@@ -8,6 +8,7 @@ export const Workbench: Component<WorkbenchProps> = (props) => {
   const { Provider, value } = createWorkbenchContext(
     props.specs,
     props.initialLayout,
+    props.onTileAdded,
   );
 
   return (

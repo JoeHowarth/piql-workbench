@@ -73,7 +73,8 @@ const DndHandler: Component<Props> = (props) => {
 
     if (specId) {
       // Dragging from picker - add new tile
-      addTile(specId, targetPaneId, position);
+      const initialData = draggable.data?.initialData;
+      addTile(specId, targetPaneId, position, initialData);
     } else if (sourcePaneId && sourcePaneId !== targetPaneId) {
       // Dragging existing pane - move it
       movePane(sourcePaneId, targetPaneId, position);

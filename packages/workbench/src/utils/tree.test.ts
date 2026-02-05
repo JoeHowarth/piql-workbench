@@ -7,6 +7,7 @@ import {
   removePane,
   movePane,
   updateSizes,
+  type InsertResult,
 } from "./tree";
 
 // ============================================================================
@@ -152,11 +153,12 @@ describe("findParent", () => {
 describe("insertTile - center drop", () => {
   it("replaces specId on center drop", () => {
     const tree = leaf("target", "old-spec");
-    const result = insertTile(tree, "target", "center", "new-spec");
+    const { tree: result, newPaneId } = insertTile(tree, "target", "center", "new-spec");
 
     expect(result.type).toBe("leaf");
     expect((result as LeafPane).specId).toBe("new-spec");
     expect(result.id).toBe("target"); // ID unchanged
+    expect(newPaneId).toBeNull(); // Center drop doesn't create new pane
     assertTreeInvariants(result);
   });
 
@@ -165,7 +167,7 @@ describe("insertTile - center drop", () => {
       leaf("a", "spec-a"),
       leaf("b", "spec-b"),
     ]);
-    const result = insertTile(tree, "a", "center", "new-spec");
+    const { tree: result } = insertTile(tree, "a", "center", "new-spec");
 
     const found = findPane(result, "a") as LeafPane;
     expect(found.specId).toBe("new-spec");
@@ -177,7 +179,7 @@ describe("insertTile - center drop", () => {
       leaf("a", "spec-a"),
       leaf("b", "spec-b"),
     ]);
-    const result = insertTile(tree, "a", "center", "new-spec");
+    const { tree: result } = insertTile(tree, "a", "center", "new-spec");
 
     expect(result.type).toBe("split");
     expect((result as SplitPane).children.length).toBe(2);
@@ -192,12 +194,14 @@ describe("insertTile - center drop", () => {
 describe("insertTile - edge drops", () => {
   it("left drop creates horizontal split with new pane first", () => {
     const tree = leaf("target", "existing");
-    const result = insertTile(tree, "target", "left", "new-spec");
+    const { tree: result, newPaneId } = insertTile(tree, "target", "left", "new-spec");
 
     expect(result.type).toBe("split");
+    expect(newPaneId).not.toBeNull();
     const splitResult = result as SplitPane;
     expect(splitResult.dir).toBe("h");
     expect(splitResult.children[0].type).toBe("leaf");
+    expect(splitResult.children[0].id).toBe(newPaneId); // New pane has returned ID
     expect((splitResult.children[0] as LeafPane).specId).toBe("new-spec");
     expect(splitResult.children[1].id).toBe("target");
     expect(splitResult.sizes).toEqual([50, 50]);
@@ -206,12 +210,14 @@ describe("insertTile - edge drops", () => {
 
   it("right drop creates horizontal split with new pane second", () => {
     const tree = leaf("target", "existing");
-    const result = insertTile(tree, "target", "right", "new-spec");
+    const { tree: result, newPaneId } = insertTile(tree, "target", "right", "new-spec");
 
     expect(result.type).toBe("split");
+    expect(newPaneId).not.toBeNull();
     const splitResult = result as SplitPane;
     expect(splitResult.dir).toBe("h");
     expect(splitResult.children[0].id).toBe("target");
+    expect(splitResult.children[1].id).toBe(newPaneId);
     expect((splitResult.children[1] as LeafPane).specId).toBe("new-spec");
     expect(splitResult.sizes).toEqual([50, 50]);
     assertTreeInvariants(result);
@@ -219,11 +225,13 @@ describe("insertTile - edge drops", () => {
 
   it("top drop creates vertical split with new pane first", () => {
     const tree = leaf("target", "existing");
-    const result = insertTile(tree, "target", "top", "new-spec");
+    const { tree: result, newPaneId } = insertTile(tree, "target", "top", "new-spec");
 
     expect(result.type).toBe("split");
+    expect(newPaneId).not.toBeNull();
     const splitResult = result as SplitPane;
     expect(splitResult.dir).toBe("v");
+    expect(splitResult.children[0].id).toBe(newPaneId);
     expect((splitResult.children[0] as LeafPane).specId).toBe("new-spec");
     expect(splitResult.children[1].id).toBe("target");
     assertTreeInvariants(result);
@@ -231,19 +239,21 @@ describe("insertTile - edge drops", () => {
 
   it("bottom drop creates vertical split with new pane second", () => {
     const tree = leaf("target", "existing");
-    const result = insertTile(tree, "target", "bottom", "new-spec");
+    const { tree: result, newPaneId } = insertTile(tree, "target", "bottom", "new-spec");
 
     expect(result.type).toBe("split");
+    expect(newPaneId).not.toBeNull();
     const splitResult = result as SplitPane;
     expect(splitResult.dir).toBe("v");
     expect(splitResult.children[0].id).toBe("target");
+    expect(splitResult.children[1].id).toBe(newPaneId);
     expect((splitResult.children[1] as LeafPane).specId).toBe("new-spec");
     assertTreeInvariants(result);
   });
 
   it("preserves original target pane in tree", () => {
     const tree = leaf("target", "existing");
-    const result = insertTile(tree, "target", "left", "new-spec");
+    const { tree: result } = insertTile(tree, "target", "left", "new-spec");
 
     const found = findPane(result, "target");
     expect(found).not.toBeNull();
@@ -259,7 +269,7 @@ describe("insertTile - edge drops", () => {
       leaf("right", "spec-right"),
     ]);
 
-    const result = insertTile(tree, "deep", "right", "new-spec");
+    const { tree: result } = insertTile(tree, "deep", "right", "new-spec");
 
     // The deep leaf should now be in a split with the new pane
     const deepPane = findPane(result, "deep");
@@ -269,6 +279,16 @@ describe("insertTile - edge drops", () => {
     expect(deepParent).not.toBeNull();
     expect(deepParent!.dir).toBe("h"); // right drop = horizontal
     assertTreeInvariants(result);
+  });
+
+  it("uses provided paneId when given", () => {
+    const tree = leaf("target", "existing");
+    const { tree: result, newPaneId } = insertTile(tree, "target", "right", "new-spec", "custom-id");
+
+    expect(newPaneId).toBe("custom-id");
+    const newPane = findPane(result, "custom-id");
+    expect(newPane).not.toBeNull();
+    expect((newPane as LeafPane).specId).toBe("new-spec");
   });
 });
 
@@ -660,7 +680,7 @@ describe("regression: pixel sizes preserved on nested insert", () => {
     ]);
 
     // Insert a tile below the picker (vertical drop)
-    const result = insertTile(tree, "picker-pane", "bottom", "shipments");
+    const { tree: result } = insertTile(tree, "picker-pane", "bottom", "shipments");
 
     // Root sizes should be UNCHANGED
     const rootSplit = result as SplitPane;
@@ -689,15 +709,15 @@ describe("regression: pixel sizes preserved on nested insert", () => {
     ]);
 
     // Insert first tile below picker
-    tree = insertTile(tree, "picker-pane", "bottom", "shipments-1");
+    tree = insertTile(tree, "picker-pane", "bottom", "shipments-1").tree;
     expect((tree as SplitPane).sizes).toEqual([{ px: 180 }, 100]);
 
     // Insert second tile below picker (now picker is in a nested split)
-    tree = insertTile(tree, "picker-pane", "bottom", "shipments-2");
+    tree = insertTile(tree, "picker-pane", "bottom", "shipments-2").tree;
     expect((tree as SplitPane).sizes).toEqual([{ px: 180 }, 100]);
 
     // Insert third tile
-    tree = insertTile(tree, "picker-pane", "bottom", "shipments-3");
+    tree = insertTile(tree, "picker-pane", "bottom", "shipments-3").tree;
     expect((tree as SplitPane).sizes).toEqual([{ px: 180 }, 100]);
 
     // Root pixel size should still be exactly 180px
@@ -714,7 +734,7 @@ describe("regression: pixel sizes preserved on nested insert", () => {
     ]);
 
     // Insert to the right of orders (horizontal drop)
-    const result = insertTile(tree, "content-pane", "right", "inventory");
+    const { tree: result } = insertTile(tree, "content-pane", "right", "inventory");
 
     // Root structure changes - content-pane is now a split
     const rootSplit = result as SplitPane;

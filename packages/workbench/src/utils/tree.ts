@@ -7,6 +7,13 @@ import type {
 } from "../types";
 import { generatePaneId } from "./ids";
 
+/** Result of inserting a tile into the tree */
+export interface InsertResult {
+  tree: PaneNode;
+  /** ID of newly created pane, or null for center drops (which replace existing) */
+  newPaneId: string | null;
+}
+
 // Find a pane by id
 export function findPane(tree: PaneNode, id: string): PaneNode | null {
   if (tree.id === id) return tree;
@@ -48,35 +55,42 @@ export function insertTile(
   position: DropPosition,
   newSpecId: string,
   paneId?: string,
-): PaneNode {
+): InsertResult {
+  const newPaneId = paneId ?? generatePaneId();
   const newLeaf: LeafPane = {
     type: "leaf",
-    id: paneId ?? generatePaneId(),
+    id: newPaneId,
     specId: newSpecId,
   };
 
   // If dropping on center, replace the target pane's specId
   if (position === "center") {
-    return replaceInTree(tree, targetId, (node) => {
-      if (node.type !== "leaf") return node;
-      return { ...node, specId: newSpecId };
-    });
+    return {
+      tree: replaceInTree(tree, targetId, (node) => {
+        if (node.type !== "leaf") return node;
+        return { ...node, specId: newSpecId };
+      }),
+      newPaneId: null, // No new pane created, just replaced specId
+    };
   }
 
   // Otherwise, split the target pane
-  return replaceInTree(tree, targetId, (target) => {
-    const dir = getSplitDir(position);
-    const first = isFirstPosition(position);
-    const children = first ? [newLeaf, target] : [target, newLeaf];
+  return {
+    tree: replaceInTree(tree, targetId, (target) => {
+      const dir = getSplitDir(position);
+      const first = isFirstPosition(position);
+      const children = first ? [newLeaf, target] : [target, newLeaf];
 
-    return {
-      type: "split",
-      id: generatePaneId(),
-      dir,
-      children,
-      sizes: [50, 50],
-    } as SplitPane;
-  });
+      return {
+        type: "split",
+        id: generatePaneId(),
+        dir,
+        children,
+        sizes: [50, 50],
+      } as SplitPane;
+    }),
+    newPaneId,
+  };
 }
 
 // Remove a pane from the tree
@@ -121,7 +135,7 @@ export function movePane(
   }
 
   // Insert at target location, preserving the original pane ID
-  return insertTile(treeWithoutSource, targetId, position, specId, paneId);
+  return insertTile(treeWithoutSource, targetId, position, specId, paneId).tree;
 }
 
 // Helper: replace a node in the tree
