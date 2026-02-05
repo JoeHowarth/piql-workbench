@@ -5,7 +5,7 @@ import {
 } from "@thisbeyond/solid-dnd";
 import type { Component } from "solid-js";
 import { createSignal, Show } from "solid-js";
-import { PaneIdContext, useWorkbench } from "../context";
+import { FocusModeContext, PaneIdContext, useWorkbench } from "../context";
 import { getDropPosition, getDropZoneStyle } from "../dnd/dropZones";
 import type { LeafPane as LeafPaneType } from "../types";
 
@@ -17,6 +17,7 @@ export const LeafPane: Component<Props> = (props) => {
   const { getSpec, removePane } = useWorkbench();
   const [dropPosition, setDropPosition] = createSignal<string | null>(null);
   const [isHovered, setIsHovered] = createSignal(false);
+  const [focusMode, setFocusMode] = createSignal(false);
   let containerRef: HTMLDivElement | undefined;
 
   const spec = () => getSpec(props.pane.specId);
@@ -109,29 +110,43 @@ export const LeafPane: Component<Props> = (props) => {
         <span class="text-xs font-medium text-gray-700 dark:text-gray-300 truncate">
           {spec()?.title ?? "Unknown"}
         </span>
-        <Show when={closable()}>
+        <div class="flex items-center gap-0.5">
           <button
             type="button"
-            class="p-0.5 rounded hover:bg-gray-200 dark:hover:bg-gray-700 text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-200"
-            onClick={handleClose}
+            class={`p-0.5 rounded hover:bg-gray-200 dark:hover:bg-gray-700 text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-200 ${focusMode() ? "bg-blue-100 dark:bg-blue-900 text-blue-600 dark:text-blue-400" : ""}`}
+            onClick={(e) => {
+              e.stopPropagation();
+              setFocusMode((v) => !v);
+            }}
             onMouseDown={(e) => e.stopPropagation()}
-            title="Close"
+            title={focusMode() ? "Exit focus mode" : "Focus mode"}
           >
-            <svg
-              class="w-3 h-3"
-              fill="none"
-              stroke="currentColor"
-              viewBox="0 0 24 24"
-            >
-              <path
-                stroke-linecap="round"
-                stroke-linejoin="round"
-                stroke-width="2"
-                d="M6 18L18 6M6 6l12 12"
-              />
-            </svg>
+            <span class="text-xs">⛶</span>
           </button>
-        </Show>
+          <Show when={closable()}>
+            <button
+              type="button"
+              class="p-0.5 rounded hover:bg-gray-200 dark:hover:bg-gray-700 text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-200"
+              onClick={handleClose}
+              onMouseDown={(e) => e.stopPropagation()}
+              title="Close"
+            >
+              <svg
+                class="w-3 h-3"
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+              >
+                <path
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                  stroke-width="2"
+                  d="M6 18L18 6M6 6l12 12"
+                />
+              </svg>
+            </button>
+          </Show>
+        </div>
       </div>
 
       {/* Content - pointer-events-none during drag so mouse events reach container */}
@@ -146,7 +161,9 @@ export const LeafPane: Component<Props> = (props) => {
             }
           >
             <PaneIdContext.Provider value={() => props.pane.id}>
-              {spec()!.component()}
+              <FocusModeContext.Provider value={focusMode}>
+                {spec()!.component()}
+              </FocusModeContext.Provider>
             </PaneIdContext.Provider>
           </Show>
         </div>

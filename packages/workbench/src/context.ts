@@ -134,3 +134,11 @@ export function usePaneId(): string {
   }
   return paneId();
 }
+
+// Focus mode context - allows tiles to know if they're in focus mode
+export const FocusModeContext = createContext<Accessor<boolean>>();
+
+export function useFocusMode(): boolean {
+  const focusMode = useContext(FocusModeContext);
+  return focusMode?.() ?? false;
+}

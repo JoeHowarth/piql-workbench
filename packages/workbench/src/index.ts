@@ -1,7 +1,7 @@
 // Main component
 
 // Context hooks for tiles that need to interact with workbench
-export { usePaneId, useWorkbench } from "./context";
+export { useFocusMode, usePaneId, useWorkbench } from "./context";
 // DnD primitives for building picker tiles
 export { DraggableItem } from "./dnd/DraggableItem";
 // Types

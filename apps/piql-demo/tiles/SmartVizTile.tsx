@@ -11,7 +11,7 @@ import {
   useArrowData,
 } from "query-viz";
 import { createMemo, createSignal, For, Match, Show, Switch } from "solid-js";
-import { type TileSpec, usePaneId, useWorkbench } from "workbench";
+import { type TileSpec, useFocusMode, usePaneId, useWorkbench } from "workbench";
 import {
   type VizType,
   getSmartVizState,
@@ -72,6 +72,7 @@ function SmartVizContent() {
   };
 
   const [refinement, setRefinement] = createSignal("");
+  const focusMode = useFocusMode();
 
   const submitRefinement = async () => {
     const r = refinement().trim();
@@ -234,81 +235,84 @@ User's follow-up request: ${r}`;
 
   return (
     <div class="h-full flex flex-col">
-      {/* Viz type selector */}
-      <div class="flex gap-1 p-2 border-b border-gray-200 dark:border-gray-700">
-        <For each={VIZ_TYPES}>
-          {(vt) => (
-            <button
-              type="button"
-              onClick={() => setVizType(paneId, vt.id)}
-              class={`px-3 py-1 text-sm rounded transition-colors ${
-                state().vizType === vt.id
-                  ? "bg-blue-500 text-white"
-                  : "bg-gray-200 dark:bg-gray-700 text-gray-600 dark:text-gray-400 hover:bg-gray-300 dark:hover:bg-gray-600"
-              }`}
-            >
-              {vt.label}
-            </button>
-          )}
-        </For>
-        <div class="flex-1" />
-        <button
-          type="button"
-          onClick={duplicate}
-          class="flex items-center gap-1 px-2 py-1 text-sm text-gray-600 dark:text-gray-300 hover:text-gray-800 dark:hover:text-gray-100 bg-gray-100 dark:bg-gray-800 hover:bg-gray-200 dark:hover:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded transition-colors"
-          title="Duplicate this tile"
-        >
-          <span>⧉</span>
-          <span>Duplicate</span>
-        </button>
-      </div>
+      {/* Controls - hidden in focus mode */}
+      <Show when={!focusMode}>
+        {/* Viz type selector */}
+        <div class="flex gap-1 p-2 border-b border-gray-200 dark:border-gray-700">
+          <For each={VIZ_TYPES}>
+            {(vt) => (
+              <button
+                type="button"
+                onClick={() => setVizType(paneId, vt.id)}
+                class={`px-3 py-1 text-sm rounded transition-colors ${
+                  state().vizType === vt.id
+                    ? "bg-blue-500 text-white"
+                    : "bg-gray-200 dark:bg-gray-700 text-gray-600 dark:text-gray-400 hover:bg-gray-300 dark:hover:bg-gray-600"
+                }`}
+              >
+                {vt.label}
+              </button>
+            )}
+          </For>
+          <div class="flex-1" />
+          <button
+            type="button"
+            onClick={duplicate}
+            class="flex items-center gap-1 px-2 py-1 text-sm text-gray-600 dark:text-gray-300 hover:text-gray-800 dark:hover:text-gray-100 bg-gray-100 dark:bg-gray-800 hover:bg-gray-200 dark:hover:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded transition-colors"
+            title="Duplicate this tile"
+          >
+            <span>⧉</span>
+            <span>Duplicate</span>
+          </button>
+        </div>
 
-      {/* Question input */}
-      <div class="flex gap-2 p-2 border-b border-gray-200 dark:border-gray-700">
-        <textarea
-          value={state().question}
-          onInput={(e) => {
-            setSmartVizQuestion(paneId, e.currentTarget.value);
-            e.currentTarget.style.height = "auto";
-            e.currentTarget.style.height = `${e.currentTarget.scrollHeight}px`;
-          }}
-          onKeyDown={(e) => {
-            if (e.key === "Enter" && !e.shiftKey) {
-              e.preventDefault();
-              submitQuestion();
-            }
-          }}
-          placeholder="Ask a question... (Enter to submit)"
-          rows={1}
-          class="flex-1 px-2 py-1 text-sm border border-gray-300 dark:border-gray-600 rounded bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 resize-none overflow-hidden"
-        />
-        <button
-          type="button"
-          disabled={state().loading}
-          onClick={submitQuestion}
-          class="px-3 py-1 text-sm bg-purple-500 hover:bg-purple-600 disabled:bg-purple-300 text-white rounded transition-colors self-start"
-        >
-          {state().loading ? "..." : "Ask"}
-        </button>
-      </div>
+        {/* Question input */}
+        <div class="flex gap-2 p-2 border-b border-gray-200 dark:border-gray-700">
+          <textarea
+            value={state().question}
+            onInput={(e) => {
+              setSmartVizQuestion(paneId, e.currentTarget.value);
+              e.currentTarget.style.height = "auto";
+              e.currentTarget.style.height = `${e.currentTarget.scrollHeight}px`;
+            }}
+            onKeyDown={(e) => {
+              if (e.key === "Enter" && !e.shiftKey) {
+                e.preventDefault();
+                submitQuestion();
+              }
+            }}
+            placeholder="Ask a question... (Enter to submit)"
+            rows={1}
+            class="flex-1 px-2 py-1 text-sm border border-gray-300 dark:border-gray-600 rounded bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 resize-none overflow-hidden"
+          />
+          <button
+            type="button"
+            disabled={state().loading}
+            onClick={submitQuestion}
+            class="px-3 py-1 text-sm bg-purple-500 hover:bg-purple-600 disabled:bg-purple-300 text-white rounded transition-colors self-start"
+          >
+            {state().loading ? "..." : "Ask"}
+          </button>
+        </div>
 
-      {/* Generated query (editable) - always visible */}
-      <div class="flex gap-2 p-2 border-b border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-900">
-        <CodeInput
-          value={state().generatedQuery}
-          onChange={(v) => setSmartVizGeneratedQuery(paneId, v)}
-          onSubmit={runQuery}
-          class="flex-1 min-h-[32px]"
-        />
-        <button
-          type="button"
-          disabled={state().loading || !state().generatedQuery.trim()}
-          onClick={runQuery}
-          class="px-3 py-1 text-sm bg-blue-500 hover:bg-blue-600 disabled:bg-blue-300 text-white rounded transition-colors self-start"
-        >
-          Run
-        </button>
-      </div>
+        {/* Generated query (editable) - always visible */}
+        <div class="flex gap-2 p-2 border-b border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-900">
+          <CodeInput
+            value={state().generatedQuery}
+            onChange={(v) => setSmartVizGeneratedQuery(paneId, v)}
+            onSubmit={runQuery}
+            class="flex-1 min-h-[32px]"
+          />
+          <button
+            type="button"
+            disabled={state().loading || !state().generatedQuery.trim()}
+            onClick={runQuery}
+            class="px-3 py-1 text-sm bg-blue-500 hover:bg-blue-600 disabled:bg-blue-300 text-white rounded transition-colors self-start"
+          >
+            Run
+          </button>
+        </div>
+      </Show>
 
       {/* Visualization */}
       <div class="flex-1 relative overflow-hidden">
@@ -370,8 +374,8 @@ User's follow-up request: ${r}`;
         </Show>
       </div>
 
-      {/* Refinement input - appears when there are results */}
-      <Show when={state().table && !state().loading}>
+      {/* Refinement input - appears when there are results (hidden in focus mode) */}
+      <Show when={state().table && !state().loading && !focusMode}>
         <div class="flex gap-2 p-2 border-t border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-900">
           <textarea
             value={refinement()}
@@ -400,6 +404,7 @@ User's follow-up request: ${r}`;
           </button>
         </div>
       </Show>
-    </div>
+
+      </div>
   );
 }
