@@ -14,7 +14,16 @@ const initialLayout: PaneNode = {
   sizes: [{ px: 180 }, 100],
   children: [
     { type: "leaf", id: "picker-pane", specId: "picker" },
-    { type: "leaf", id: "query-pane", specId: "query" },
+    {
+      type: "split",
+      id: "main",
+      dir: "h",
+      sizes: [50, 50],
+      children: [
+        { type: "leaf", id: "query-pane", specId: "query" },
+        { type: "leaf", id: "chart-pane", specId: "chart" },
+      ],
+    },
   ],
 };
 

@@ -112,7 +112,7 @@ function ChartContent() {
         </button>
       </div>
 
-      <div class="overflow-hidden">
+      <div class="relative overflow-hidden">
         <Show when={state().error}>
           <div class="p-3 text-sm text-red-600 dark:text-red-400">
             {state().error!.message}

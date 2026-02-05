@@ -65,19 +65,28 @@ function AskContent() {
     <div class="h-full flex flex-col">
       {/* Question input */}
       <div class="flex gap-2 p-2 border-b border-gray-200 dark:border-gray-700">
-        <input
-          type="text"
+        <textarea
           value={state().question}
-          onInput={(e) => setQuestion(paneId, e.currentTarget.value)}
-          onKeyDown={(e) => e.key === "Enter" && submitQuestion()}
-          placeholder="Ask a question..."
-          class="flex-1 px-2 py-1 text-sm border border-gray-300 dark:border-gray-600 rounded bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100"
+          onInput={(e) => {
+            setQuestion(paneId, e.currentTarget.value);
+            e.currentTarget.style.height = "auto";
+            e.currentTarget.style.height = `${e.currentTarget.scrollHeight}px`;
+          }}
+          onKeyDown={(e) => {
+            if (e.key === "Enter" && (e.metaKey || e.ctrlKey)) {
+              e.preventDefault();
+              submitQuestion();
+            }
+          }}
+          placeholder="Ask a question... (Cmd+Enter to submit)"
+          rows={1}
+          class="flex-1 px-2 py-1 text-sm border border-gray-300 dark:border-gray-600 rounded bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 resize-none overflow-hidden"
         />
         <button
           type="button"
           disabled={state().loading}
           onClick={submitQuestion}
-          class="px-3 py-1 text-sm bg-purple-500 hover:bg-purple-600 disabled:bg-purple-300 text-white rounded transition-colors"
+          class="px-3 py-1 text-sm bg-purple-500 hover:bg-purple-600 disabled:bg-purple-300 text-white rounded transition-colors self-start"
         >
           {state().loading ? "..." : "Ask"}
         </button>

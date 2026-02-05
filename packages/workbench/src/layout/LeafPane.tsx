@@ -136,7 +136,7 @@ export const LeafPane: Component<Props> = (props) => {
 
       {/* Content - pointer-events-none during drag so mouse events reach container */}
       <div class="flex-1 overflow-auto">
-        <div classList={{ "pointer-events-none": isDragging() }}>
+        <div class="h-full" classList={{ "pointer-events-none": isDragging() }}>
           <Show
             when={spec()}
             fallback={

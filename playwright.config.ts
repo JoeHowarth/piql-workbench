@@ -21,7 +21,7 @@ export default defineConfig({
     },
     {
       name: "piql-demo",
-      testMatch: "piql.spec.ts",
+      testMatch: ["piql.spec.ts", "chart.spec.ts"],
       use: {
         browserName: "chromium",
         baseURL: "http://localhost:5174",

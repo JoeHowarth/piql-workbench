@@ -13,7 +13,7 @@ export const BaseChart: Component<BaseChartProps> = (props) => {
   return (
     <div
       class={props.class ?? ""}
-      style={{ position: "relative", width: "100%", height: "100%", "min-height": "200px" }}
+      style={{ position: "absolute", top: 0, left: 0, right: 0, bottom: 0 }}
     >
       <Show
         when={props.option()}
@@ -23,12 +23,10 @@ export const BaseChart: Component<BaseChartProps> = (props) => {
           </div>
         }
       >
-        <div style={{ position: "absolute", top: 0, left: 0, right: 0, bottom: 0 }}>
-          <EChartsAutoSize
-            option={props.option()!}
-            isLoading={props.loading?.() ?? false}
-          />
-        </div>
+        <EChartsAutoSize
+          option={props.option()!}
+          isLoading={props.loading?.() ?? false}
+        />
       </Show>
     </div>
   );
