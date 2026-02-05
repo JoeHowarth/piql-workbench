@@ -5,7 +5,7 @@ import {
 } from "@thisbeyond/solid-dnd";
 import type { Component } from "solid-js";
 import { createSignal, Show } from "solid-js";
-import { useWorkbench } from "../context";
+import { PaneIdContext, useWorkbench } from "../context";
 import { getDropPosition, getDropZoneStyle } from "../dnd/dropZones";
 import type { LeafPane as LeafPaneType } from "../types";
 
@@ -145,7 +145,9 @@ export const LeafPane: Component<Props> = (props) => {
               </div>
             }
           >
-            {spec()!.component()}
+            <PaneIdContext.Provider value={() => props.pane.id}>
+              {spec()!.component()}
+            </PaneIdContext.Provider>
           </Show>
         </div>
       </div>

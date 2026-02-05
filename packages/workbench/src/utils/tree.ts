@@ -41,15 +41,17 @@ function isFirstPosition(position: DropPosition): boolean {
 }
 
 // Insert a new tile, splitting the target pane
+// If paneId is provided, use it instead of generating a new one (for moves)
 export function insertTile(
   tree: PaneNode,
   targetId: string,
   position: DropPosition,
   newSpecId: string,
+  paneId?: string,
 ): PaneNode {
   const newLeaf: LeafPane = {
     type: "leaf",
-    id: generatePaneId(),
+    id: paneId ?? generatePaneId(),
     specId: newSpecId,
   };
 
@@ -99,8 +101,9 @@ export function movePane(
   const source = findPane(tree, sourceId);
   if (!source || source.type !== "leaf") return tree;
 
-  // Get the specId before removing
+  // Get the specId and paneId before removing (preserve ID for state persistence)
   const specId = source.specId;
+  const paneId = source.id;
 
   // Remove source from tree
   const treeWithoutSource = removePane(tree, sourceId);
@@ -117,8 +120,8 @@ export function movePane(
     return treeWithoutSource;
   }
 
-  // Insert at target location
-  return insertTile(treeWithoutSource, targetId, position, specId);
+  // Insert at target location, preserving the original pane ID
+  return insertTile(treeWithoutSource, targetId, position, specId, paneId);
 }
 
 // Helper: replace a node in the tree

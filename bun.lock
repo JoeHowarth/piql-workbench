@@ -24,6 +24,24 @@
         "vite-plugin-solid": "^2.11.0",
       },
     },
+    "apps/piql-demo": {
+      "name": "piql-demo",
+      "version": "0.1.0",
+      "dependencies": {
+        "piql-client": "workspace:*",
+        "query-viz": "workspace:*",
+        "solid-js": "^1.9.3",
+        "workbench": "workspace:*",
+      },
+      "devDependencies": {
+        "autoprefixer": "^10.4.20",
+        "postcss": "^8.4.49",
+        "tailwindcss": "^3.4.17",
+        "typescript": "^5.7.2",
+        "vite": "^6.0.7",
+        "vite-plugin-solid": "^2.11.0",
+      },
+    },
     "apps/workbench-demo": {
       "name": "workbench-demo",
       "version": "0.1.0",
@@ -452,6 +470,8 @@
     "pify": ["pify@2.3.0", "", {}, "sha512-udgsAY+fTnvv7kI7aaxbqwWNb0AHiB0qBO89PZKPkoTmGOgdbrHDKD+0B2X4uTfJ/FT1R09r9gTsjUjNJotuog=="],
 
     "piql-client": ["piql-client@workspace:packages/piql-client"],
+
+    "piql-demo": ["piql-demo@workspace:apps/piql-demo"],
 
     "pirates": ["pirates@4.0.7", "", {}, "sha512-TfySrs/5nm8fQJDcBDuUng3VOUKsd7S+zqvbOTiGXHfxX4wK31ard+hoNuvkicM/2YFzlpDgABOevKSsB4G/FA=="],
 

@@ -8,18 +8,36 @@ export default defineConfig({
   workers: process.env.CI ? 1 : undefined,
   reporter: "html",
   use: {
-    baseURL: "http://localhost:5173",
     trace: "on-first-retry",
   },
   projects: [
     {
-      name: "chromium",
-      use: { browserName: "chromium" },
+      name: "workbench-demo",
+      testMatch: "workbench.spec.ts",
+      use: {
+        browserName: "chromium",
+        baseURL: "http://localhost:5173",
+      },
+    },
+    {
+      name: "piql-demo",
+      testMatch: "piql.spec.ts",
+      use: {
+        browserName: "chromium",
+        baseURL: "http://localhost:5174",
+      },
     },
   ],
-  webServer: {
-    command: "bun run --cwd apps/workbench-demo dev",
-    url: "http://localhost:5173",
-    reuseExistingServer: !process.env.CI,
-  },
+  webServer: [
+    {
+      command: "bun run --cwd apps/workbench-demo dev",
+      url: "http://localhost:5173",
+      reuseExistingServer: !process.env.CI,
+    },
+    {
+      command: "bun run --cwd apps/piql-demo dev -- --port 5174",
+      url: "http://localhost:5174",
+      reuseExistingServer: !process.env.CI,
+    },
+  ],
 });

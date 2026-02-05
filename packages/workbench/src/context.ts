@@ -1,4 +1,4 @@
-import { createContext, createSignal, useContext } from "solid-js";
+import { type Accessor, createContext, createSignal, useContext } from "solid-js";
 import type {
   DropPosition,
   PaneNode,
@@ -112,3 +112,14 @@ export function createWorkbenchContext(
 
 // Re-export for internal use
 export { WorkbenchContext };
+
+// Pane ID context - allows tile components to know their pane id
+export const PaneIdContext = createContext<Accessor<string>>();
+
+export function usePaneId(): string {
+  const paneId = useContext(PaneIdContext);
+  if (!paneId) {
+    throw new Error("usePaneId must be used within a tile component");
+  }
+  return paneId();
+}

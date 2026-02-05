@@ -455,8 +455,9 @@ describe("movePane", () => {
     const result = movePane(tree, "a", "b", "right");
 
     // 'a' should be removed from its position and inserted to right of 'b'
+    // The pane ID is preserved for state persistence
     expect(result).not.toBeNull();
-    expect(findPane(result, "a")).toBeNull(); // 'a' was removed (tree collapsed)
+    expect(findPane(result, "a")).not.toBeNull(); // ID preserved
 
     // The result should have spec-a somewhere
     const allSpecs = collectSpecIds(result);
@@ -529,6 +530,48 @@ describe("movePane", () => {
 
     const result = movePane(tree, "inner", "a", "right");
     expect(result).toBe(tree); // Unchanged
+  });
+
+  it("preserves pane ID when moving", () => {
+    // This is critical for state persistence - if the pane ID changes,
+    // any state stored by that ID (like query text) will be lost
+    const tree = split("root", "h", [50, 50], [
+      split("left", "v", [50, 50], [leaf("a", "spec-a"), leaf("b", "spec-b")]),
+      leaf("target", "spec-target"),
+    ]);
+
+    const result = movePane(tree, "a", "target", "right");
+
+    // The moved pane should still have ID "a"
+    const movedPane = findPane(result, "a");
+    expect(movedPane).not.toBeNull();
+    expect(movedPane!.type).toBe("leaf");
+    expect((movedPane as LeafPane).specId).toBe("spec-a");
+
+    assertTreeInvariants(result);
+  });
+
+  it("preserves pane ID after multiple moves", () => {
+    let tree: PaneNode = split("root", "h", [50, 50], [
+      leaf("query-1", "query"),
+      leaf("query-2", "query"),
+    ]);
+
+    // Move query-1 to the right of query-2
+    tree = movePane(tree, "query-1", "query-2", "right");
+    expect(findPane(tree, "query-1")).not.toBeNull();
+
+    // Move it again to the bottom
+    tree = movePane(tree, "query-1", "query-2", "bottom");
+    expect(findPane(tree, "query-1")).not.toBeNull();
+
+    // Move it once more
+    tree = movePane(tree, "query-1", "query-2", "left");
+    const finalPane = findPane(tree, "query-1");
+    expect(finalPane).not.toBeNull();
+    expect((finalPane as LeafPane).specId).toBe("query");
+
+    assertTreeInvariants(tree);
   });
 });
 
