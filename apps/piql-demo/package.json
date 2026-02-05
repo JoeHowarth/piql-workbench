@@ -11,10 +11,10 @@
     "@codemirror/lang-python": "^6.2.1",
     "@codemirror/theme-one-dark": "^6.1.3",
     "codemirror": "^6.0.2",
-    "piql-client": "workspace:*",
-    "query-viz": "workspace:*",
+    "piql-client": "*",
+    "query-viz": "*",
     "solid-js": "^1.9.3",
-    "workbench": "workspace:*"
+    "workbench": "*"
   },
   "devDependencies": {
     "autoprefixer": "^10.4.20",

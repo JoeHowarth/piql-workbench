@@ -76,6 +76,7 @@ export function useDerivedRows(
       });
     }
 
-    return result;
+    // Limit to 1000 rows for performance
+    return result.slice(0, 1000);
   });
 }

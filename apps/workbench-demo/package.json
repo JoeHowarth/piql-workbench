@@ -8,9 +8,9 @@
     "build": "vite build"
   },
   "dependencies": {
-    "piql-client": "workspace:*",
-    "query-viz": "workspace:*",
-    "workbench": "workspace:*",
+    "piql-client": "*",
+    "query-viz": "*",
+    "workbench": "*",
     "solid-js": "^1.9.3"
   },
   "devDependencies": {

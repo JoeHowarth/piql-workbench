@@ -8,7 +8,7 @@
     "build": "vite build"
   },
   "dependencies": {
-    "query-viz": "workspace:*",
+    "query-viz": "*",
     "solid-js": "^1.9.3"
   },
   "devDependencies": {
