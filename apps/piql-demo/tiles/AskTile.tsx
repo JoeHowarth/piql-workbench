@@ -73,12 +73,12 @@ function AskContent() {
             e.currentTarget.style.height = `${e.currentTarget.scrollHeight}px`;
           }}
           onKeyDown={(e) => {
-            if (e.key === "Enter" && (e.metaKey || e.ctrlKey)) {
+            if (e.key === "Enter" && !e.shiftKey) {
               e.preventDefault();
               submitQuestion();
             }
           }}
-          placeholder="Ask a question... (Cmd+Enter to submit)"
+          placeholder="Ask a question... (Enter to submit, Shift+Enter for newline)"
           rows={1}
           class="flex-1 px-2 py-1 text-sm border border-gray-300 dark:border-gray-600 rounded bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 resize-none overflow-hidden"
         />

@@ -5,7 +5,7 @@ export default {
     "../../packages/query-viz/src/**/*.{js,ts,jsx,tsx}",
     "../../packages/workbench/src/**/*.{js,ts,jsx,tsx}",
   ],
-  darkMode: "media",
+  darkMode: "class",
   theme: {
     extend: {},
   },

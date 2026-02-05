@@ -2,18 +2,27 @@ import type { PaneNode, TileSpec } from "workbench";
 import { Workbench } from "workbench";
 import { client } from "./piql";
 import { setQueryLoading, setQueryResult, setQueryText } from "./queryStore";
-import { askTile } from "./tiles/AskTile";
+import {
+  setSmartVizGeneratedQuery,
+  setSmartVizLoading,
+  setSmartVizResult,
+} from "./smartVizStore";
 import { chartTile } from "./tiles/ChartTile";
 import { dataframesTile } from "./tiles/DataFramesTile";
+import { lineChartTile } from "./tiles/LineChartTile";
 import { pickerTile } from "./tiles/PickerTile";
 import { queryTile } from "./tiles/QueryTile";
+import { scatterChartTile } from "./tiles/ScatterChartTile";
+import { smartVizTile } from "./tiles/SmartVizTile";
 
 const specs: TileSpec[] = [
   pickerTile(),
   dataframesTile(),
   queryTile(),
-  askTile(),
   chartTile(),
+  lineChartTile(),
+  scatterChartTile(),
+  smartVizTile(),
 ];
 
 const initialLayout: PaneNode = {
@@ -52,22 +61,31 @@ function handleTileAdded(paneId: string, specId: string, initialData?: unknown) 
   if (specId === "query" && initialData && typeof initialData === "object") {
     const data = initialData as { query?: string; execute?: boolean };
     if (data.query) {
-      console.log("[handleTileAdded] setting query text:", data.query);
       setQueryText(paneId, data.query);
-
       if (data.execute) {
-        console.log("[handleTileAdded] executing query...");
         setQueryLoading(paneId, true);
         client
           .query(data.query)
-          .then((table) => {
-            console.log("[handleTileAdded] query success:", table.numRows, "rows");
-            setQueryResult(paneId, table, null);
-          })
-          .catch((e) => {
-            console.error("[handleTileAdded] query error:", e);
-            setQueryResult(paneId, null, e instanceof Error ? e : new Error(String(e)));
-          });
+          .then((table) => setQueryResult(paneId, table, null))
+          .catch((e) =>
+            setQueryResult(paneId, null, e instanceof Error ? e : new Error(String(e))),
+          );
+      }
+    }
+  }
+
+  if (specId === "smartviz" && initialData && typeof initialData === "object") {
+    const data = initialData as { query?: string; execute?: boolean };
+    if (data.query) {
+      setSmartVizGeneratedQuery(paneId, data.query);
+      if (data.execute) {
+        setSmartVizLoading(paneId, true);
+        client
+          .query(data.query)
+          .then((table) => setSmartVizResult(paneId, data.query!, table, null))
+          .catch((e) =>
+            setSmartVizResult(paneId, data.query!, null, e instanceof Error ? e : new Error(String(e))),
+          );
       }
     }
   }

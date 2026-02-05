@@ -20,8 +20,8 @@ export function CodeInput(props: Props) {
   onMount(() => {
     if (!containerRef) return;
 
-    // Check for dark mode
-    const isDark = window.matchMedia("(prefers-color-scheme: dark)").matches;
+    // Check for dark mode (class-based)
+    const isDark = document.documentElement.classList.contains("dark");
 
     const updateListener = EditorView.updateListener.of((update) => {
       if (update.docChanged) {
