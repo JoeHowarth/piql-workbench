@@ -99,8 +99,9 @@ export function useLineChartOptions(
         type: xType,
         data: xType === "category" ? (categories as string[]) : undefined,
         name: cfg.xAxis.label,
-        min: cfg.xAxis.min,
-        max: cfg.xAxis.max,
+        // For value axes (e.g., block numbers), auto-scale to data range
+        min: cfg.xAxis.min ?? (xType === "value" ? "dataMin" : undefined),
+        max: cfg.xAxis.max ?? (xType === "value" ? "dataMax" : undefined),
       },
       yAxis: yAxes,
       series: series as EChartsOption["series"],
@@ -218,14 +219,16 @@ export function useScatterChartOptions(
       xAxis: {
         type: "value" as const,
         name: cfg.xAxis?.label ?? x,
-        min: cfg.xAxis?.min,
-        max: cfg.xAxis?.max,
+        // Scatter: auto-scale to data range by default (not 0-based)
+        min: cfg.xAxis?.min ?? "dataMin",
+        max: cfg.xAxis?.max ?? "dataMax",
       },
       yAxis: {
         type: "value" as const,
         name: cfg.yAxis?.label ?? y,
-        min: cfg.yAxis?.min,
-        max: cfg.yAxis?.max,
+        // Scatter: auto-scale to data range by default (not 0-based)
+        min: cfg.yAxis?.min ?? "dataMin",
+        max: cfg.yAxis?.max ?? "dataMax",
       },
       series: [
         {
