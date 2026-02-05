@@ -117,9 +117,13 @@ export function useBarChartOptions(
   const data = useArrowData(table);
 
   return createMemo((): EChartsOption | null => {
-    const { rows } = data;
+    const { rows, schema } = data;
     const cfg = config();
-    if (rows.length === 0) return null;
+    console.log("[useBarChartOptions] rows.length:", rows.length, "schema:", schema, "config:", cfg);
+    if (rows.length === 0) {
+      console.log("[useBarChartOptions] No rows, returning null");
+      return null;
+    }
 
     const catCol = cfg.categoryAxis.column;
     const categories = rows.map((r) => String(r[catCol] ?? ""));

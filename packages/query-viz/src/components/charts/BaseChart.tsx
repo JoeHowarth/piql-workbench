@@ -11,19 +11,24 @@ interface BaseChartProps {
 
 export const BaseChart: Component<BaseChartProps> = (props) => {
   return (
-    <div class={`w-full h-full min-h-[200px] ${props.class ?? ""}`}>
+    <div
+      class={props.class ?? ""}
+      style={{ position: "relative", width: "100%", height: "100%", "min-height": "200px" }}
+    >
       <Show
         when={props.option()}
         fallback={
-          <div class="w-full h-full flex items-center justify-center text-gray-400 text-sm">
+          <div style={{ width: "100%", height: "100%", display: "flex", "align-items": "center", "justify-content": "center", color: "#9ca3af", "font-size": "14px" }}>
             No data
           </div>
         }
       >
-        <EChartsAutoSize
-          option={props.option()!}
-          isLoading={props.loading?.() ?? false}
-        />
+        <div style={{ position: "absolute", top: 0, left: 0, right: 0, bottom: 0 }}>
+          <EChartsAutoSize
+            option={props.option()!}
+            isLoading={props.loading?.() ?? false}
+          />
+        </div>
       </Show>
     </div>
   );
