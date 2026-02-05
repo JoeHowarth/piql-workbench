@@ -1,6 +1,6 @@
 import { DataFrameTable } from "query-viz";
 import { Show } from "solid-js";
-import { usePaneId, type TileSpec } from "workbench";
+import { type TileSpec, usePaneId } from "workbench";
 import { CodeInput } from "../components/CodeInput";
 import { client } from "../piql";
 import {
@@ -32,7 +32,11 @@ function QueryContent() {
       const result = await client.query(q);
       setQueryResult(paneId, result, null);
     } catch (e) {
-      setQueryResult(paneId, null, e instanceof Error ? e : new Error(String(e)));
+      setQueryResult(
+        paneId,
+        null,
+        e instanceof Error ? e : new Error(String(e)),
+      );
     }
   };
 

@@ -1,4 +1,4 @@
-import { describe, expect, it, beforeEach } from "bun:test";
+import { describe, expect, it } from "bun:test";
 
 // We need to test the store behavior, but the store uses solid-js/store
 // which requires a reactive context. Let's test the logic directly.
@@ -44,7 +44,9 @@ describe("QueryStore", () => {
   });
 
   it("should persist state when pane id stays the same", async () => {
-    const { getQueryState, setQueryText, setQueryLoading } = await import("./queryStore");
+    const { getQueryState, setQueryText, setQueryLoading } = await import(
+      "./queryStore"
+    );
 
     const paneId = "persistent-pane";
 

@@ -1,5 +1,4 @@
 import type { Table } from "apache-arrow";
-import { createSignal } from "solid-js";
 import { createStore, produce } from "solid-js/store";
 
 export interface QueryState {
@@ -33,7 +32,11 @@ export function setQueryText(paneId: string, text: string) {
   setStore(paneId, "queryText", text);
 }
 
-export function setQueryResult(paneId: string, table: Table | null, error: Error | null) {
+export function setQueryResult(
+  paneId: string,
+  table: Table | null,
+  error: Error | null,
+) {
   setStore(paneId, {
     table,
     error,

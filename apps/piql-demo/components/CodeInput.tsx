@@ -1,10 +1,9 @@
-import { EditorView, minimalSetup } from "codemirror";
 import { python } from "@codemirror/lang-python";
-import { oneDark } from "@codemirror/theme-one-dark";
-import { createEffect, onCleanup, onMount } from "solid-js";
 import { EditorState, Prec } from "@codemirror/state";
+import { oneDark } from "@codemirror/theme-one-dark";
 import { keymap } from "@codemirror/view";
-import { getEnterAction } from "./keyHandlers";
+import { EditorView, minimalSetup } from "codemirror";
+import { createEffect, onCleanup, onMount } from "solid-js";
 
 interface Props {
   value: string;

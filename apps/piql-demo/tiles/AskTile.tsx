@@ -1,8 +1,6 @@
 import { DataFrameTable } from "query-viz";
 import { Show } from "solid-js";
-import { usePaneId, type TileSpec } from "workbench";
-import { CodeInput } from "../components/CodeInput";
-import { client } from "../piql";
+import { type TileSpec, usePaneId } from "workbench";
 import {
   getAskState,
   setAskLoading,
@@ -10,6 +8,8 @@ import {
   setGeneratedQuery,
   setQuestion,
 } from "../askStore";
+import { CodeInput } from "../components/CodeInput";
+import { client } from "../piql";
 
 export const askTile = (): TileSpec => ({
   id: "ask",
@@ -32,7 +32,12 @@ function AskContent() {
       const { query, table } = await client.ask(q, true);
       setAskResult(paneId, query, table ?? null, null);
     } catch (e) {
-      setAskResult(paneId, "", null, e instanceof Error ? e : new Error(String(e)));
+      setAskResult(
+        paneId,
+        "",
+        null,
+        e instanceof Error ? e : new Error(String(e)),
+      );
     }
   };
 
@@ -47,7 +52,12 @@ function AskContent() {
       const result = await client.query(q);
       setAskResult(paneId, q, result, null);
     } catch (e) {
-      setAskResult(paneId, q, null, e instanceof Error ? e : new Error(String(e)));
+      setAskResult(
+        paneId,
+        q,
+        null,
+        e instanceof Error ? e : new Error(String(e)),
+      );
     }
   };
 
@@ -112,7 +122,14 @@ function AskContent() {
           />
         </Show>
 
-        <Show when={!state().table && !state().error && !state().loading && !state().generatedQuery}>
+        <Show
+          when={
+            !state().table &&
+            !state().error &&
+            !state().loading &&
+            !state().generatedQuery
+          }
+        >
           <div class="h-full flex items-center justify-center text-gray-400 dark:text-gray-500 text-sm">
             Ask a question in natural language
           </div>

@@ -59,9 +59,7 @@ export function createPiqlClient(baseUrl: string) {
       question: string,
       execute?: boolean,
     ): Promise<{ query: string; table?: Table }> {
-      const url = execute
-        ? `${baseUrl}/ask?execute=true`
-        : `${baseUrl}/ask`;
+      const url = execute ? `${baseUrl}/ask?execute=true` : `${baseUrl}/ask`;
 
       console.log("[ask] request:", { url, question, execute });
 
@@ -82,7 +80,8 @@ export function createPiqlClient(baseUrl: string) {
         throw new Error(err.error ?? "Ask failed");
       }
 
-      const query = res.headers.get("X-Piql-Query") ?? "";
+      const rawQuery = res.headers.get("X-Piql-Query") ?? "";
+      const query = rawQuery.replaceAll("\\n", "\n");
       console.log("[ask] X-Piql-Query:", query);
 
       if (execute) {

@@ -1,5 +1,5 @@
 import type { Table } from "apache-arrow";
-import { createStore, produce } from "solid-js/store";
+import { createStore } from "solid-js/store";
 
 export interface AskState {
   question: string;

@@ -33,12 +33,10 @@ export function createMockClient(): PiqlClient {
     },
 
     subscribe(query, onData) {
-      let tick = 0;
       const interval = setInterval(() => {
         const headMatch = query.match(/\.head\((\d+)\)/);
         const rowCount = headMatch ? parseInt(headMatch[1], 10) : 25;
         onData(createMockTable(Math.min(rowCount, 100)));
-        tick++;
       }, 1000);
 
       return () => clearInterval(interval);
