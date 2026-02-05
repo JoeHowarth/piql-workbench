@@ -28,12 +28,21 @@ function inferAxisType(schema: ColumnSchema[], column: string): AxisType {
   return "category";
 }
 
-// Convert bigint timestamps to JS Date
+// Convert bigint timestamps to JS Date (for time series)
 function toChartValue(value: unknown): string | number | Date | null {
   if (value === null || value === undefined) return null;
   if (typeof value === "bigint") return new Date(Number(value));
   if (typeof value === "number") return value;
   return String(value);
+}
+
+// Convert to number only - no date interpretation (for scatter/numeric axes)
+function toNumericValue(value: unknown): number | null {
+  if (value === null || value === undefined) return null;
+  if (typeof value === "bigint") return Number(value);
+  if (typeof value === "number") return value;
+  const parsed = Number(value);
+  return Number.isNaN(parsed) ? null : parsed;
 }
 
 // ============ Line Chart ============
@@ -187,16 +196,16 @@ export function useScatterChartOptions(
     const { x, y, size } = cfg.dimensions;
     const [minSize, maxSize] = cfg.sizeRange ?? [8, 40];
 
-    // Build scatter data points
+    // Build scatter data points - use numeric values only (no date conversion)
     const scatterData = rows.map((r) => {
-      const point = [toChartValue(r[x]), toChartValue(r[y])];
-      if (size) point.push(toChartValue(r[size]));
+      const point: (number | null)[] = [toNumericValue(r[x]), toNumericValue(r[y])];
+      if (size) point.push(toNumericValue(r[size]));
       return point;
     });
 
     // Calculate base symbol size - scales inversely with data count
     // Few points = larger dots, many points = smaller dots
-    const baseSize = size ? undefined : Math.max(8, Math.min(18, 200 / Math.sqrt(rows.length)));
+    const baseSize = size ? undefined : Math.max(6, Math.min(12, 100 / Math.sqrt(rows.length)));
 
     // Calculate size normalization if size dimension is present
     let symbolSize: number | ((val: number[]) => number) = baseSize ?? 12;
@@ -223,6 +232,18 @@ export function useScatterChartOptions(
       tooltip: {
         show: cfg.tooltip?.show !== false,
         trigger: cfg.tooltip?.trigger ?? "item",
+        // Format as plain numbers
+        formatter: (params: unknown) => {
+          const p = params as { value: (number | null)[] };
+          const [xVal, yVal, sizeVal] = p.value;
+          const xLabel = cfg.xAxis?.label ?? x;
+          const yLabel = cfg.yAxis?.label ?? y;
+          let text = `${xLabel}: ${xVal?.toLocaleString() ?? "N/A"}<br/>${yLabel}: ${yVal?.toLocaleString() ?? "N/A"}`;
+          if (size && sizeVal != null) {
+            text += `<br/>${size}: ${sizeVal.toLocaleString()}`;
+          }
+          return text;
+        },
       },
       xAxis: {
         type: "value" as const,
@@ -248,11 +269,32 @@ export function useScatterChartOptions(
           data: scatterData,
           symbolSize,
           itemStyle: {
-            shadowBlur: 4,
-            shadowColor: "rgba(84, 112, 198, 0.5)",
+            shadowBlur: 3,
+            shadowColor: "rgba(84, 112, 198, 0.4)",
           },
         },
       ] as EChartsOption["series"],
+      // Responsive: scale points with container size
+      media: [
+        {
+          query: { maxWidth: 300 },
+          option: {
+            series: [{ symbolSize: size ? symbolSize : Math.max(4, baseSize! * 0.5) }],
+          },
+        },
+        {
+          query: { minWidth: 300, maxWidth: 500 },
+          option: {
+            series: [{ symbolSize: size ? symbolSize : Math.max(5, baseSize! * 0.7) }],
+          },
+        },
+        {
+          query: { minWidth: 800 },
+          option: {
+            series: [{ symbolSize: size ? symbolSize : Math.min(16, baseSize! * 1.3) }],
+          },
+        },
+      ],
     };
   });
 }

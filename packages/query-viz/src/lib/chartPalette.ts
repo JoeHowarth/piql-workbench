@@ -27,14 +27,14 @@ export const CHART_GRID = {
 // Common axis styling - subtle grid lines
 export const CHART_AXIS_STYLE = {
   axisLine: {
-    lineStyle: { color: "#4b5563" }, // gray-600
+    lineStyle: { color: "#6b7280" }, // gray-500
   },
   axisTick: {
-    lineStyle: { color: "#4b5563" },
+    lineStyle: { color: "#6b7280" },
   },
   splitLine: {
     lineStyle: {
-      color: "#374151", // gray-700 - subtle grid
+      color: "#4b5563", // gray-600 - visible but not overwhelming
       type: "dashed" as const,
     },
   },
