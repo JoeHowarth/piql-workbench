@@ -68,3 +68,12 @@ export function setSmartVizResult(
 export function setSmartVizLoading(paneId: string, loading: boolean) {
   setStore(paneId, "loading", loading);
 }
+
+export function clearSmartVizContext(paneId: string) {
+  setStore(paneId, {
+    question: "",
+    generatedQuery: "",
+    table: null,
+    error: null,
+  });
+}

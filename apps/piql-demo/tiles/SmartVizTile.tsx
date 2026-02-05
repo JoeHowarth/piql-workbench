@@ -14,6 +14,7 @@ import { createMemo, createSignal, For, Match, Show, Switch } from "solid-js";
 import { type TileSpec, useFocusMode, usePaneId, useWorkbench } from "workbench";
 import {
   type VizType,
+  clearSmartVizContext,
   getSmartVizState,
   setSmartVizGeneratedQuery,
   setSmartVizLoading,
@@ -71,60 +72,37 @@ function SmartVizContent() {
     });
   };
 
-  const [refinement, setRefinement] = createSignal("");
+  const [inputText, setInputText] = createSignal("");
   const focusMode = useFocusMode();
 
-  const submitRefinement = async () => {
-    const r = refinement().trim();
-    if (!r) return;
+  // Whether we have context from a previous question
+  const hasContext = () => state().table !== null && state().question !== "";
+
+  const submitQuestion = async () => {
+    const q = inputText().trim();
+    if (!q) return;
 
     const s = state();
-    if (!s.table) return;
-
     setSmartVizLoading(paneId, true);
 
     try {
-      // Build context from previous state
-      const sampleRows = formatSampleRows(s.table, 5);
-      const context = `Previous question: ${s.question}
+      let fullQuestion: string;
+      const prefix = PROMPT_PREFIXES[s.vizType];
+
+      if (hasContext() && s.table) {
+        // Refinement mode: include context from previous results
+        const sampleRows = formatSampleRows(s.table, 5);
+        const context = `Previous question: ${s.question}
 Generated PiQL query: ${s.generatedQuery}
 Result sample (first 5 rows):
 ${sampleRows}
 
-User's follow-up request: ${r}`;
-
-      const prefix = PROMPT_PREFIXES[s.vizType];
-      const fullQuestion = prefix ? `${prefix}\n\n${context}` : context;
-
-      // Step 1: Get the generated query (no execution)
-      const { query } = await client.ask(fullQuestion, false);
-      setSmartVizGeneratedQuery(paneId, query);
-      setSmartVizQuestion(paneId, r);
-
-      // Step 2: Execute the query separately
-      const table = await client.query(query);
-      setSmartVizResult(paneId, query, table, null);
-      setRefinement("");
-    } catch (e) {
-      // Query is already set, just show the error
-      setSmartVizResult(
-        paneId,
-        state().generatedQuery,
-        null,
-        e instanceof Error ? e : new Error(String(e)),
-      );
-    }
-  };
-
-  const submitQuestion = async () => {
-    const q = state().question.trim();
-    if (!q) return;
-
-    setSmartVizLoading(paneId, true);
-
-    try {
-      const prefix = PROMPT_PREFIXES[state().vizType];
-      const fullQuestion = prefix ? `${prefix}\n\nUser question: ${q}` : q;
+User's follow-up request: ${q}`;
+        fullQuestion = prefix ? `${prefix}\n\n${context}` : context;
+      } else {
+        // Fresh question
+        fullQuestion = prefix ? `${prefix}\n\nUser question: ${q}` : q;
+      }
 
       // Step 1: Get the generated query (no execution)
       const { query } = await client.ask(fullQuestion, false);
@@ -132,7 +110,9 @@ User's follow-up request: ${r}`;
 
       // Step 2: Execute the query separately
       const table = await client.query(query);
+      setSmartVizQuestion(paneId, q);
       setSmartVizResult(paneId, query, table, null);
+      setInputText("");
     } catch (e) {
       // Query is already set, just show the error
       setSmartVizResult(
@@ -266,33 +246,49 @@ User's follow-up request: ${r}`;
           </button>
         </div>
 
-        {/* Question input */}
-        <div class="flex gap-2 p-2 border-b border-gray-200 dark:border-gray-700">
-          <textarea
-            value={state().question}
-            onInput={(e) => {
-              setSmartVizQuestion(paneId, e.currentTarget.value);
-              e.currentTarget.style.height = "auto";
-              e.currentTarget.style.height = `${e.currentTarget.scrollHeight}px`;
-            }}
-            onKeyDown={(e) => {
-              if (e.key === "Enter" && !e.shiftKey) {
-                e.preventDefault();
-                submitQuestion();
-              }
-            }}
-            placeholder="Ask a question... (Enter to submit)"
-            rows={1}
-            class="flex-1 px-2 py-1 text-sm border border-gray-300 dark:border-gray-600 rounded bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 resize-none overflow-hidden"
-          />
-          <button
-            type="button"
-            disabled={state().loading}
-            onClick={submitQuestion}
-            class="px-3 py-1 text-sm bg-purple-500 hover:bg-purple-600 disabled:bg-purple-300 text-white rounded transition-colors self-start"
-          >
-            {state().loading ? "..." : "Ask"}
-          </button>
+        {/* Question input with context */}
+        <div class="flex flex-col border-b border-gray-200 dark:border-gray-700">
+          {/* Context line - shows when refining */}
+          <Show when={hasContext()}>
+            <div class="flex items-center gap-2 px-2 pt-2 text-xs text-gray-500 dark:text-gray-400">
+              <span class="text-gray-400 dark:text-gray-500">↩</span>
+              <span class="flex-1 truncate italic">"{state().question}"</span>
+              <button
+                type="button"
+                onClick={() => clearSmartVizContext(paneId)}
+                class="px-1.5 py-0.5 text-xs text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200 bg-gray-200 dark:bg-gray-700 hover:bg-gray-300 dark:hover:bg-gray-600 rounded transition-colors"
+              >
+                Clear
+              </button>
+            </div>
+          </Show>
+          <div class="flex gap-2 p-2">
+            <textarea
+              value={inputText()}
+              onInput={(e) => {
+                setInputText(e.currentTarget.value);
+                e.currentTarget.style.height = "auto";
+                e.currentTarget.style.height = `${e.currentTarget.scrollHeight}px`;
+              }}
+              onKeyDown={(e) => {
+                if (e.key === "Enter" && !e.shiftKey) {
+                  e.preventDefault();
+                  submitQuestion();
+                }
+              }}
+              placeholder={hasContext() ? "Refine: filter, group, add columns..." : "Ask a question... (Enter to submit)"}
+              rows={1}
+              class="flex-1 px-2 py-1 text-sm border border-gray-300 dark:border-gray-600 rounded bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 resize-none overflow-hidden"
+            />
+            <button
+              type="button"
+              disabled={state().loading || !inputText().trim()}
+              onClick={submitQuestion}
+              class="px-3 py-1 text-sm bg-purple-500 hover:bg-purple-600 disabled:bg-purple-300 text-white rounded transition-colors self-start"
+            >
+              {state().loading ? "..." : "Ask"}
+            </button>
+          </div>
         </div>
 
         {/* Generated query (editable) - always visible */}
@@ -374,37 +370,6 @@ User's follow-up request: ${r}`;
         </Show>
       </div>
 
-      {/* Refinement input - appears when there are results (hidden in focus mode) */}
-      <Show when={state().table && !state().loading && !focusMode}>
-        <div class="flex gap-2 p-2 border-t border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-900">
-          <textarea
-            value={refinement()}
-            onInput={(e) => {
-              setRefinement(e.currentTarget.value);
-              e.currentTarget.style.height = "auto";
-              e.currentTarget.style.height = `${e.currentTarget.scrollHeight}px`;
-            }}
-            onKeyDown={(e) => {
-              if (e.key === "Enter" && !e.shiftKey) {
-                e.preventDefault();
-                submitRefinement();
-              }
-            }}
-            placeholder="Refine: filter, group, add columns..."
-            rows={1}
-            class="flex-1 px-2 py-1 text-sm border border-gray-300 dark:border-gray-600 rounded bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 resize-none overflow-hidden"
-          />
-          <button
-            type="button"
-            disabled={state().loading || !refinement().trim()}
-            onClick={submitRefinement}
-            class="px-3 py-1 text-sm bg-green-500 hover:bg-green-600 disabled:bg-green-300 text-white rounded transition-colors self-start"
-          >
-            Refine
-          </button>
-        </div>
-      </Show>
-
-      </div>
+    </div>
   );
 }
