@@ -3,28 +3,64 @@ import type { PiqlClient } from "piql-client";
 import { createContext, type JSX, useContext } from "solid-js";
 import { createMockTable } from "./mockData";
 
-// Minimal mock that implements just what QueryTile needs
-const mockClient: Pick<PiqlClient, "query" | "connected"> = {
-  connected: true,
+const resolveRowCount = (input: string): number => {
+  const countMatch = input.match(/\b(\d+)\b/);
+  const count = countMatch ? Number.parseInt(countMatch[1], 10) : 25;
+  return Math.max(1, Math.min(count, 100));
+};
+
+const buildQueryFromQuestion = (question: string): string => {
+  const lower = question.toLowerCase();
+  const dataset = lower.includes("inventory")
+    ? "inventory"
+    : lower.includes("shipment")
+      ? "shipments"
+      : "orders";
+  return `${dataset}.head(${resolveRowCount(question)})`;
+};
+
+const mockClient: PiqlClient = {
+  async listDataframes() {
+    await new Promise((r) => setTimeout(r, 100));
+    return ["orders", "inventory", "shipments"];
+  },
 
   async query(query: string): Promise<Table> {
     // Simulate network delay
     await new Promise((r) => setTimeout(r, 300 + Math.random() * 200));
 
     // Parse simple patterns from query to vary response
-    const headMatch = query.match(/\.head\((\d+)\)/);
-    const rowCount = headMatch ? parseInt(headMatch[1], 10) : 25;
+    const rowCount = resolveRowCount(query);
 
     // Simulate errors for certain queries
     if (query.includes("error") || query.includes("fail")) {
       throw new Error(`Query failed: ${query}`);
     }
 
-    return createMockTable(Math.min(rowCount, 100));
+    return createMockTable(rowCount);
+  },
+
+  subscribe(query, onData) {
+    const interval = setInterval(() => {
+      onData(createMockTable(resolveRowCount(query)));
+    }, 1000);
+
+    return () => clearInterval(interval);
+  },
+
+  async ask(question, execute) {
+    await new Promise((r) => setTimeout(r, 120));
+    const query = buildQueryFromQuestion(question);
+
+    if (!execute) {
+      return { query };
+    }
+
+    return { query, table: createMockTable(resolveRowCount(question)) };
   },
 };
 
-const MockPiqlContext = createContext<typeof mockClient>();
+const MockPiqlContext = createContext<PiqlClient>();
 
 interface MockPiqlProviderProps {
   url?: string; // Ignored, for API compatibility with real provider
@@ -45,5 +81,5 @@ export function usePiqlClient() {
   if (!client) {
     throw new Error("usePiqlClient must be used within a MockPiqlProvider");
   }
-  return client as PiqlClient;
+  return client;
 }
