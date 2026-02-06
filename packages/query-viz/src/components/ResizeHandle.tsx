@@ -9,6 +9,7 @@ export const ResizeHandle: Component<Props> = (props) => {
 
   const onMouseDown = (e: MouseEvent) => {
     e.preventDefault();
+    e.stopPropagation();
     startX = e.clientX;
 
     const onMouseMove = (moveEvent: MouseEvent) => {
@@ -30,6 +31,7 @@ export const ResizeHandle: Component<Props> = (props) => {
     <div
       class="absolute right-0 top-0 h-full w-1 cursor-col-resize hover:bg-blue-400 active:bg-blue-500"
       onMouseDown={onMouseDown}
+      onClick={(e) => e.stopPropagation()}
     />
   );
 };
