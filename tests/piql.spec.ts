@@ -95,4 +95,52 @@ test.describe("PiQL Demo - Query Tile State Persistence", () => {
     // First query editor should still have its query (state preserved)
     await expect(queryPane.locator(".cm-editor").first()).toContainText("first-query");
   });
+
+  test("resizing a column does not toggle sort", async ({ page }) => {
+    const queryPane = page.getByTestId("pane-query");
+    const editor = queryPane.locator(".cm-editor .cm-content");
+    await editor.click();
+    await page.keyboard.type("items.head(8)");
+    await queryPane.getByRole("button", { name: "Run" }).click();
+
+    await expect(queryPane.locator("table")).toBeVisible({ timeout: 2000 });
+
+    const firstHeader = queryPane.locator("th").first();
+    await expect(firstHeader).not.toContainText("↑");
+    await expect(firstHeader).not.toContainText("↓");
+
+    const resizeHandle = firstHeader.locator(".cursor-col-resize");
+    await resizeHandle.click({ force: true });
+
+    // Regression check: clicking resize handle must not bubble to header sort
+    await expect(firstHeader).not.toContainText("↑");
+    await expect(firstHeader).not.toContainText("↓");
+  });
+
+  test("smartviz ask flow works in mock mode", async ({ page }) => {
+    const dataframesPane = page.getByTestId("pane-dataframes");
+    const queryPane = page.getByTestId("pane-query");
+    const itemsTile = dataframesPane.getByText("items").first();
+    const queryPaneBox = await queryPane.boundingBox();
+
+    await itemsTile.dragTo(queryPane, {
+      targetPosition: { x: queryPaneBox!.width - 20, y: queryPaneBox!.height / 2 },
+    });
+
+    const smartVizPane = page.getByTestId("pane-smartviz");
+    await expect(smartVizPane).toBeVisible();
+
+    const generatedQuery = smartVizPane.locator(".cm-editor").first();
+    await expect(generatedQuery).toContainText("items.head()");
+    await expect(smartVizPane.locator("table")).toBeVisible({ timeout: 3000 });
+
+    const askInput = smartVizPane.locator("textarea").first();
+    await askInput.fill("show top 7 orders");
+    await smartVizPane.getByRole("button", { name: "Ask" }).click();
+
+    await expect(generatedQuery).toContainText("orders.head(7)", {
+      timeout: 3000,
+    });
+    await expect(smartVizPane.locator("table")).toBeVisible({ timeout: 3000 });
+  });
 });
