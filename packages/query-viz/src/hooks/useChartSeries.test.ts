@@ -125,4 +125,34 @@ describe("useBarChartOptions", () => {
       dispose();
     });
   });
+
+  it("generates bar options for large datasets within budget", () => {
+    const rowCount = 20_000;
+    const table = tableFromArrays({
+      tx_type: Array.from({ length: rowCount }, (_, i) => `cat-${i + 1}`),
+      total_amount: Float64Array.from({ length: rowCount }, (_, i) => i + 0.25),
+    });
+
+    const config: BarChartConfig = {
+      categoryAxis: { column: "tx_type" },
+      series: [{ column: "total_amount" }],
+    };
+
+    createRoot((dispose) => {
+      const [tableSignal] = createSignal(table);
+      const [configSignal] = createSignal(config);
+
+      const result = useBarChartOptions(tableSignal, configSignal);
+      const start = performance.now();
+      const options = result();
+      const durationMs = performance.now() - start;
+
+      expect(options).not.toBeNull();
+      const xAxis = options?.xAxis as { data?: string[] };
+      expect(xAxis.data).toHaveLength(rowCount);
+      expect(durationMs).toBeLessThan(1500);
+
+      dispose();
+    });
+  });
 });
