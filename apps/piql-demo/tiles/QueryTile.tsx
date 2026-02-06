@@ -47,6 +47,8 @@ function QueryContent() {
           value={state().queryText}
           onChange={(v) => setQueryText(paneId, v)}
           onSubmit={submit}
+          testId="query-editor"
+          inputTestId="query-editor-input"
           class="flex-1 min-h-[32px]"
         />
         <button

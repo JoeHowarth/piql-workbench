@@ -30,6 +30,7 @@ function DataFramesContent() {
           <DraggableItem
             id={`df-${name}`}
             specId="smartviz"
+            testId={`draggable-df-${name}`}
             initialData={{ query: `${name}.head()`, execute: true }}
             class="p-2 bg-gray-50 dark:bg-gray-700 hover:bg-gray-100 dark:hover:bg-gray-600 rounded border border-gray-200 dark:border-gray-600 text-sm text-gray-800 dark:text-gray-200 cursor-grab"
           >

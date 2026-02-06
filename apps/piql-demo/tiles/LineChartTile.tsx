@@ -50,6 +50,8 @@ function LineChartContent() {
           value={state().queryText}
           onChange={(v) => setLineQuery(paneId, v)}
           onSubmit={submit}
+          testId="line-editor"
+          inputTestId="line-editor-input"
           class="flex-1 min-h-[32px]"
         />
         <button

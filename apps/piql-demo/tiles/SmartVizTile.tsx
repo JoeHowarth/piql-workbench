@@ -208,6 +208,7 @@ User's follow-up request: ${q}`;
           </Show>
           <div class="flex gap-2 p-2">
             <textarea
+              data-testid="smartviz-ask-input"
               value={inputText()}
               onInput={(e) => {
                 setInputText(e.currentTarget.value);
@@ -245,6 +246,8 @@ User's follow-up request: ${q}`;
             value={state().generatedQuery}
             onChange={(v) => setSmartVizGeneratedQuery(paneId, v)}
             onSubmit={runQuery}
+            testId="smartviz-generated-editor"
+            inputTestId="smartviz-generated-editor-input"
             class="flex-1 min-h-[32px]"
           />
           <button

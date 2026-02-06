@@ -32,7 +32,7 @@ test.describe("Workbench Layout", () => {
 
   test("can drag tile from picker to create new pane", async ({ page }) => {
     // Find the Inventory tile in the picker
-    const inventoryTile = page.getByText("Inventory").first();
+    const inventoryTile = page.getByTestId("draggable-picker-inventory");
     const ordersPane = page.getByTestId("pane-orders");
 
     // Get initial orders pane width
@@ -58,7 +58,7 @@ test.describe("Workbench Layout", () => {
 
   test("can close a pane", async ({ page }) => {
     // First, add an inventory pane
-    const inventoryTile = page.getByText("Inventory").first();
+    const inventoryTile = page.getByTestId("draggable-picker-inventory");
     const ordersPane = page.getByTestId("pane-orders");
 
     await inventoryTile.dragTo(ordersPane, {
@@ -82,7 +82,7 @@ test.describe("Workbench Layout", () => {
     // Initial layout uses pixel-based sizes which render with CSS flex (no resize handles).
     // See SplitPane.tsx for explanation of why pixel-based splits aren't resizable.
     // To test resize handles, we first create a percentage-based split by dragging a tile.
-    const inventoryTile = page.getByText("Inventory").first();
+    const inventoryTile = page.getByTestId("draggable-picker-inventory");
     const ordersPane = page.getByTestId("pane-orders");
     const ordersBox = await ordersPane.boundingBox();
 
@@ -110,7 +110,7 @@ test.describe("Workbench Layout", () => {
     const initialWidth = initialBox!.width;
 
     // Drag Shipments to bottom of Tiles picker (vertical insert)
-    const shipmentsTile = page.getByText("Shipments").first();
+    const shipmentsTile = page.getByTestId("draggable-picker-shipments");
     const pickerPane = page.getByTestId("pane-picker");
     const pickerBox = await pickerPane.boundingBox();
 
@@ -129,7 +129,7 @@ test.describe("Workbench Layout", () => {
 
   test("can drag existing pane to rearrange", async ({ page }) => {
     // Add inventory pane first (to the right)
-    const inventoryTile = page.getByText("Inventory").first();
+    const inventoryTile = page.getByTestId("draggable-picker-inventory");
     const ordersPane = page.getByTestId("pane-orders");
     const ordersBox = await ordersPane.boundingBox();
 
@@ -141,7 +141,7 @@ test.describe("Workbench Layout", () => {
     await expect(inventoryPane).toBeVisible();
 
     // Get the inventory title bar and drag to bottom of orders
-    const inventoryTitleBar = inventoryPane.locator(".cursor-grab").first();
+    const inventoryTitleBar = inventoryPane.getByTestId("pane-title-inventory");
     const titleBox = await inventoryTitleBar.boundingBox();
     const newOrdersBox = await ordersPane.boundingBox();
 

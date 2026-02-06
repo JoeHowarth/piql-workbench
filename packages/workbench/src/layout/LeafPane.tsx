@@ -7,7 +7,7 @@ import type { Component } from "solid-js";
 import { createSignal, Show } from "solid-js";
 import { FocusModeContext, PaneIdContext, useWorkbench } from "../context";
 import { getDropPosition, getDropZoneStyle } from "../dnd/dropZones";
-import type { LeafPane as LeafPaneType } from "../types";
+import type { DropPosition, LeafPane as LeafPaneType } from "../types";
 
 interface Props {
   pane: LeafPaneType;
@@ -15,7 +15,9 @@ interface Props {
 
 export const LeafPane: Component<Props> = (props) => {
   const { getSpec, removePane } = useWorkbench();
-  const [dropPosition, setDropPosition] = createSignal<string | null>(null);
+  const [dropPosition, setDropPosition] = createSignal<DropPosition | null>(
+    null,
+  );
   const [isHovered, setIsHovered] = createSignal(false);
   const [focusMode, setFocusMode] = createSignal(false);
   let containerRef: HTMLDivElement | undefined;
@@ -104,6 +106,7 @@ export const LeafPane: Component<Props> = (props) => {
       {/* Title bar - draggable */}
       <div
         ref={draggable.ref}
+        data-testid={`pane-title-${props.pane.specId}`}
         class="flex items-center justify-between px-2 py-1 bg-gray-100 dark:bg-gray-900 border-b border-gray-200 dark:border-gray-700 shrink-0 cursor-grab active:cursor-grabbing select-none"
         {...draggable.dragActivators}
       >
@@ -173,7 +176,7 @@ export const LeafPane: Component<Props> = (props) => {
       <Show when={isDragging() && dropPosition()}>
         <div
           class="absolute pointer-events-none bg-blue-500/30 border-2 border-blue-500 rounded transition-all duration-100"
-          style={getDropZoneStyle(dropPosition() as any)}
+          style={getDropZoneStyle(dropPosition()!)}
         />
       </Show>
     </div>

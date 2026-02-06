@@ -11,7 +11,7 @@ test.describe("Chart Tile - Height and Sizing", () => {
     await expect(chartPane).toBeVisible();
 
     // Find the CodeMirror editor inside the chart pane and enter a query
-    const editor = chartPane.locator(".cm-editor .cm-content");
+    const editor = chartPane.getByTestId("chart-editor-input");
     await editor.click();
     await page.keyboard.type("test.select(pl.col('name'), pl.col('value'))");
 
@@ -49,7 +49,7 @@ test.describe("Chart Tile - Height and Sizing", () => {
     await expect(chartPane).toBeVisible();
 
     // Enter and run query
-    const editor = chartPane.locator(".cm-editor .cm-content");
+    const editor = chartPane.getByTestId("chart-editor-input");
     await editor.click();
     await page.keyboard.type("transactions.select(pl.col('tx_type'), pl.col('amount'))");
     await chartPane.getByRole("button", { name: "Run" }).click();
@@ -88,7 +88,7 @@ test.describe("Chart Tile - Height and Sizing", () => {
       }
 
       // Also get the input area
-      const inputArea = pane.querySelector(".border-b");
+      const inputArea = pane.querySelector('[data-testid="chart-controls"]');
       elements.push(getElementInfo(inputArea, "input-area"));
 
       return elements;
@@ -100,7 +100,7 @@ test.describe("Chart Tile - Height and Sizing", () => {
     }
 
     // Get the input header area (contains editor and Run button)
-    const inputArea = chartPane.locator(".border-b").first();
+    const inputArea = chartPane.getByTestId("chart-controls");
     const inputBox = await inputArea.boundingBox();
     const canvasBox = await canvas.boundingBox();
 
@@ -122,7 +122,7 @@ test.describe("Chart Tile - Height and Sizing", () => {
     await expect(chartPane).toBeVisible();
 
     // Enter and run query
-    const editor = chartPane.locator(".cm-editor .cm-content");
+    const editor = chartPane.getByTestId("chart-editor-input");
     await editor.click();
     await page.keyboard.type("test.select(pl.col('name'), pl.col('value'))");
     await chartPane.getByRole("button", { name: "Run" }).click();
@@ -156,7 +156,7 @@ test.describe("Chart Tile - Height and Sizing", () => {
     await expect(chartPane).toBeVisible();
 
     // Enter and run query
-    const editor = chartPane.locator(".cm-editor .cm-content");
+    const editor = chartPane.getByTestId("chart-editor-input");
     await editor.click();
     await page.keyboard.type("test.select(pl.col('name'), pl.col('value'))");
     await chartPane.getByRole("button", { name: "Run" }).click();

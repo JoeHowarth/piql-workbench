@@ -47,11 +47,16 @@ function ChartContent() {
 
   return (
     <div class="h-full grid grid-rows-[auto_1fr]">
-      <div class="flex gap-2 p-2 border-b border-gray-200 dark:border-gray-700">
+      <div
+        data-testid="chart-controls"
+        class="flex gap-2 p-2 border-b border-gray-200 dark:border-gray-700"
+      >
         <CodeInput
           value={state().queryText}
           onChange={(v) => setChartQuery(paneId, v)}
           onSubmit={submit}
+          testId="chart-editor"
+          inputTestId="chart-editor-input"
           class="flex-1 min-h-[32px]"
         />
         <button

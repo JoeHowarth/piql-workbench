@@ -11,6 +11,8 @@ interface Props {
   onSubmit: () => void;
   placeholder?: string;
   class?: string;
+  testId?: string;
+  inputTestId?: string;
 }
 
 export function CodeInput(props: Props) {
@@ -97,6 +99,15 @@ export function CodeInput(props: Props) {
       state,
       parent: containerRef,
     });
+
+    if (props.testId) {
+      view.dom.setAttribute("data-testid", props.testId);
+    }
+
+    if (props.inputTestId) {
+      const content = view.dom.querySelector(".cm-content");
+      content?.setAttribute("data-testid", props.inputTestId);
+    }
   });
 
   onCleanup(() => {

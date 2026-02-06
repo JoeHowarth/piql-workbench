@@ -52,6 +52,8 @@ function ScatterChartContent() {
           value={state().queryText}
           onChange={(v) => setScatterQuery(paneId, v)}
           onSubmit={submit}
+          testId="scatter-editor"
+          inputTestId="scatter-editor-input"
           class="flex-1 min-h-[32px]"
         />
         <button
