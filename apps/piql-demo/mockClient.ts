@@ -50,7 +50,14 @@ export function createMockClient(): PiqlClient {
       return createMockTable(Math.min(rowCount, 100));
     },
 
-    subscribe(query, onData) {
+    subscribe(query, onData, onError) {
+      if (query.includes("error") || query.includes("fail")) {
+        const timeout = setTimeout(() => {
+          onError?.(new Error(`Subscription failed: ${query}`));
+        }, 0);
+        return () => clearTimeout(timeout);
+      }
+
       const interval = setInterval(() => {
         const headMatch = query.match(/\.head\((\d+)\)/);
         const rowCount = headMatch ? parseInt(headMatch[1], 10) : 25;

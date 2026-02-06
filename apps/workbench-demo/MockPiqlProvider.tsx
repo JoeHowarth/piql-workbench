@@ -19,7 +19,7 @@ const buildQueryFromQuestion = (question: string): string => {
   return `${dataset}.head(${resolveRowCount(question)})`;
 };
 
-const mockClient: PiqlClient = {
+export const workbenchMockClient: PiqlClient = {
   async listDataframes() {
     await new Promise((r) => setTimeout(r, 100));
     return ["orders", "inventory", "shipments"];
@@ -40,7 +40,14 @@ const mockClient: PiqlClient = {
     return createMockTable(rowCount);
   },
 
-  subscribe(query, onData) {
+  subscribe(query, onData, onError) {
+    if (query.includes("error") || query.includes("fail")) {
+      const timeout = setTimeout(() => {
+        onError?.(new Error(`Subscription failed: ${query}`));
+      }, 0);
+      return () => clearTimeout(timeout);
+    }
+
     const interval = setInterval(() => {
       onData(createMockTable(resolveRowCount(query)));
     }, 1000);
@@ -69,7 +76,7 @@ interface MockPiqlProviderProps {
 
 export function MockPiqlProvider(props: MockPiqlProviderProps) {
   return (
-    <MockPiqlContext.Provider value={mockClient}>
+    <MockPiqlContext.Provider value={workbenchMockClient}>
       {props.children}
     </MockPiqlContext.Provider>
   );
