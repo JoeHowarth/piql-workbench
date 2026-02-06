@@ -1,34 +1,16 @@
 import type { Table } from "apache-arrow";
-import { createStore, produce } from "solid-js/store";
+import { createPaneQueryStore, type PaneQueryState } from "./paneQueryStore";
 
-export interface ScatterState {
-  queryText: string;
-  table: Table | null;
-  error: Error | null;
-  loading: boolean;
-}
+export type ScatterState = PaneQueryState;
 
-const defaultState = (): ScatterState => ({
-  queryText: "",
-  table: null,
-  error: null,
-  loading: false,
-});
-
-const [store, setStore] = createStore<Record<string, ScatterState>>({});
+const paneStore = createPaneQueryStore();
 
 export function getScatterState(paneId: string): ScatterState {
-  if (!store[paneId]) {
-    setStore(paneId, defaultState());
-  }
-  return store[paneId];
+  return paneStore.getState(paneId);
 }
 
 export function setScatterQuery(paneId: string, text: string) {
-  if (!store[paneId]) {
-    setStore(paneId, defaultState());
-  }
-  setStore(paneId, "queryText", text);
+  paneStore.setQuery(paneId, text);
 }
 
 export function setScatterResult(
@@ -36,13 +18,9 @@ export function setScatterResult(
   table: Table | null,
   error: Error | null,
 ) {
-  setStore(paneId, {
-    table,
-    error,
-    loading: false,
-  });
+  paneStore.setResult(paneId, table, error);
 }
 
 export function setScatterLoading(paneId: string, loading: boolean) {
-  setStore(paneId, "loading", loading);
+  paneStore.setLoading(paneId, loading);
 }

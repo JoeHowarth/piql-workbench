@@ -1,35 +1,16 @@
 import type { Table } from "apache-arrow";
-import { createStore, produce } from "solid-js/store";
+import { createPaneQueryStore, type PaneQueryState } from "./paneQueryStore";
 
-export interface ChartState {
-  queryText: string;
-  table: Table | null;
-  error: Error | null;
-  loading: boolean;
-}
+export type ChartState = PaneQueryState;
 
-const defaultState = (): ChartState => ({
-  queryText: "",
-  table: null,
-  error: null,
-  loading: false,
-});
-
-// Store keyed by pane id
-const [store, setStore] = createStore<Record<string, ChartState>>({});
+const paneStore = createPaneQueryStore();
 
 export function getChartState(paneId: string): ChartState {
-  if (!store[paneId]) {
-    setStore(paneId, defaultState());
-  }
-  return store[paneId];
+  return paneStore.getState(paneId);
 }
 
 export function setChartQuery(paneId: string, text: string) {
-  if (!store[paneId]) {
-    setStore(paneId, defaultState());
-  }
-  setStore(paneId, "queryText", text);
+  paneStore.setQuery(paneId, text);
 }
 
 export function setChartResult(
@@ -37,17 +18,13 @@ export function setChartResult(
   table: Table | null,
   error: Error | null,
 ) {
-  setStore(paneId, {
-    table,
-    error,
-    loading: false,
-  });
+  paneStore.setResult(paneId, table, error);
 }
 
 export function setChartLoading(paneId: string, loading: boolean) {
-  setStore(paneId, "loading", loading);
+  paneStore.setLoading(paneId, loading);
 }
 
 export function clearChartState(paneId: string) {
-  setStore(produce((s) => delete s[paneId]));
+  paneStore.clear(paneId);
 }

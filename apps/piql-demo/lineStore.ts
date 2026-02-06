@@ -1,34 +1,16 @@
 import type { Table } from "apache-arrow";
-import { createStore, produce } from "solid-js/store";
+import { createPaneQueryStore, type PaneQueryState } from "./paneQueryStore";
 
-export interface LineState {
-  queryText: string;
-  table: Table | null;
-  error: Error | null;
-  loading: boolean;
-}
+export type LineState = PaneQueryState;
 
-const defaultState = (): LineState => ({
-  queryText: "",
-  table: null,
-  error: null,
-  loading: false,
-});
-
-const [store, setStore] = createStore<Record<string, LineState>>({});
+const paneStore = createPaneQueryStore();
 
 export function getLineState(paneId: string): LineState {
-  if (!store[paneId]) {
-    setStore(paneId, defaultState());
-  }
-  return store[paneId];
+  return paneStore.getState(paneId);
 }
 
 export function setLineQuery(paneId: string, text: string) {
-  if (!store[paneId]) {
-    setStore(paneId, defaultState());
-  }
-  setStore(paneId, "queryText", text);
+  paneStore.setQuery(paneId, text);
 }
 
 export function setLineResult(
@@ -36,13 +18,9 @@ export function setLineResult(
   table: Table | null,
   error: Error | null,
 ) {
-  setStore(paneId, {
-    table,
-    error,
-    loading: false,
-  });
+  paneStore.setResult(paneId, table, error);
 }
 
 export function setLineLoading(paneId: string, loading: boolean) {
-  setStore(paneId, "loading", loading);
+  paneStore.setLoading(paneId, loading);
 }

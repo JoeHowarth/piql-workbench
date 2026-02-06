@@ -1,35 +1,16 @@
 import type { Table } from "apache-arrow";
-import { createStore, produce } from "solid-js/store";
+import { createPaneQueryStore, type PaneQueryState } from "./paneQueryStore";
 
-export interface QueryState {
-  queryText: string;
-  table: Table | null;
-  error: Error | null;
-  loading: boolean;
-}
+export type QueryState = PaneQueryState;
 
-const defaultState = (): QueryState => ({
-  queryText: "",
-  table: null,
-  error: null,
-  loading: false,
-});
-
-// Store keyed by pane id
-const [store, setStore] = createStore<Record<string, QueryState>>({});
+const paneStore = createPaneQueryStore();
 
 export function getQueryState(paneId: string): QueryState {
-  if (!store[paneId]) {
-    setStore(paneId, defaultState());
-  }
-  return store[paneId];
+  return paneStore.getState(paneId);
 }
 
 export function setQueryText(paneId: string, text: string) {
-  if (!store[paneId]) {
-    setStore(paneId, defaultState());
-  }
-  setStore(paneId, "queryText", text);
+  paneStore.setQuery(paneId, text);
 }
 
 export function setQueryResult(
@@ -37,17 +18,13 @@ export function setQueryResult(
   table: Table | null,
   error: Error | null,
 ) {
-  setStore(paneId, {
-    table,
-    error,
-    loading: false,
-  });
+  paneStore.setResult(paneId, table, error);
 }
 
 export function setQueryLoading(paneId: string, loading: boolean) {
-  setStore(paneId, "loading", loading);
+  paneStore.setLoading(paneId, loading);
 }
 
 export function clearQueryState(paneId: string) {
-  setStore(produce((s) => delete s[paneId]));
+  paneStore.clear(paneId);
 }
