@@ -61,32 +61,22 @@ export function createPiqlClient(baseUrl: string) {
     ): Promise<{ query: string; table?: Table }> {
       const url = execute ? `${baseUrl}/ask?execute=true` : `${baseUrl}/ask`;
 
-      console.log("[ask] request:", { url, question, execute });
-
       const res = await fetch(url, {
         method: "POST",
         headers: { "Content-Type": "text/plain" },
         body: question,
       });
 
-      console.log("[ask] response:", {
-        status: res.status,
-        headers: Object.fromEntries(res.headers.entries()),
-      });
-
       if (!res.ok) {
         const err = await res.json();
-        console.log("[ask] error:", err);
         throw new Error(err.error ?? "Ask failed");
       }
 
       const rawQuery = res.headers.get("X-Piql-Query") ?? "";
       const query = rawQuery.replaceAll("\\n", "\n");
-      console.log("[ask] X-Piql-Query:", query);
 
       if (execute) {
         const buffer = await res.arrayBuffer();
-        console.log("[ask] response body size:", buffer.byteLength);
         const table = tableFromIPC(new Uint8Array(buffer));
         return { query, table };
       }

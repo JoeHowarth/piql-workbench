@@ -30,16 +30,11 @@ function ChartContent() {
     if (!q) return;
 
     setChartLoading(paneId, true);
-    console.log("[ChartTile] Submitting query:", q);
 
     try {
       const result = await client.query(q);
-      console.log("[ChartTile] Got result:", result);
-      console.log("[ChartTile] Result numRows:", result?.numRows);
-      console.log("[ChartTile] Result schema:", result?.schema?.fields?.map((f: { name: string; type: unknown }) => ({ name: f.name, type: String(f.type) })));
       setChartResult(paneId, result, null);
     } catch (e) {
-      console.error("[ChartTile] Query error:", e);
       setChartResult(
         paneId,
         null,
@@ -51,20 +46,10 @@ function ChartContent() {
   // Parse the Arrow table to get schema
   const arrowData = useArrowData(() => state().table);
 
-  // Debug: log when arrowData changes
-  createMemo(() => {
-    console.log("[ChartTile] arrowData.schema:", arrowData.schema);
-    console.log("[ChartTile] arrowData.rows.length:", arrowData.rows.length);
-  });
-
   // Auto-infer chart config from schema
   const chartConfig = createMemo((): BarChartConfig | null => {
     const { schema } = arrowData;
-    console.log("[ChartTile] chartConfig memo running, schema:", schema);
-    if (schema.length === 0) {
-      console.log("[ChartTile] No schema, returning null config");
-      return null;
-    }
+    if (schema.length === 0) return null;
 
     // Find first string column for category axis
     // Arrow can encode strings as Utf8, LargeUtf8, or Dictionary<..., Utf8>
@@ -77,20 +62,12 @@ function ChartContent() {
     // Find first numeric column for value
     const valueCol = schema.find((col) => isNumericType(col.type));
 
-    console.log("[ChartTile] categoryCol:", categoryCol);
-    console.log("[ChartTile] valueCol:", valueCol);
+    if (!categoryCol || !valueCol) return null;
 
-    if (!categoryCol || !valueCol) {
-      console.log("[ChartTile] Missing category or value col, returning null");
-      return null;
-    }
-
-    const config = {
+    return {
       categoryAxis: { column: categoryCol.name },
       series: [{ column: valueCol.name }],
     };
-    console.log("[ChartTile] Generated config:", config);
-    return config;
   });
 
   return (
@@ -120,10 +97,7 @@ function ChartContent() {
         </Show>
 
         <Show when={state().table && chartConfig()}>
-          <BarChart
-            table={() => state().table}
-            config={chartConfig()!}
-          />
+          <BarChart table={() => state().table} config={chartConfig()!} />
         </Show>
 
         <Show when={state().table && !chartConfig()}>

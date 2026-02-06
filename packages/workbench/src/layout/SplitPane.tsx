@@ -1,8 +1,8 @@
 import Resizable, { useContext as useResizableContext } from "@corvu/resizable";
 import type { Component } from "solid-js";
-import { createSignal, For, onMount, Show } from "solid-js";
+import { For, Show } from "solid-js";
 import { useWorkbench } from "../context";
-import type { SizeSpec, SplitPane as SplitPaneType } from "../types";
+import type { SplitPane as SplitPaneType } from "../types";
 import { LayoutNode } from "./LayoutRoot";
 
 interface Props {
@@ -24,37 +24,6 @@ const SyncHandle: Component<{ paneId: string; class: string }> = (props) => {
     <Resizable.Handle onHandleDragEnd={handleDragEnd} class={props.class} />
   );
 };
-
-// Convert SizeSpec array to percentages based on container dimension
-function convertSizesToPercentages(
-  specs: SizeSpec[],
-  containerSize: number,
-): number[] {
-  // First pass: calculate total pixels and count of percentage-based sizes
-  let totalPixels = 0;
-  let percentageCount = 0;
-  let percentageSum = 0;
-
-  for (const spec of specs) {
-    if (typeof spec === "object" && "px" in spec) {
-      totalPixels += spec.px;
-    } else {
-      percentageCount++;
-      percentageSum += spec;
-    }
-  }
-
-  // Convert pixels to percentages
-  const remainingPercent = 100 - (totalPixels / containerSize) * 100;
-  const scale = percentageCount > 0 ? remainingPercent / percentageSum : 1;
-
-  return specs.map((spec) => {
-    if (typeof spec === "object" && "px" in spec) {
-      return (spec.px / containerSize) * 100;
-    }
-    return spec * scale;
-  });
-}
 
 export const SplitPane: Component<Props> = (props) => {
   const { getSizes } = useWorkbench();

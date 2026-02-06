@@ -4,12 +4,12 @@ import { Workbench } from "workbench";
 import { client } from "./piql";
 import { setQueryLoading, setQueryResult, setQueryText } from "./queryStore";
 import {
-  type VizType,
   setSmartVizGeneratedQuery,
   setSmartVizLoading,
   setSmartVizQuestion,
   setSmartVizResult,
   setVizType,
+  type VizType,
 } from "./smartVizStore";
 import { chartTile } from "./tiles/ChartTile";
 import { dataframesTile } from "./tiles/DataFramesTile";
@@ -59,9 +59,11 @@ const initialLayout: PaneNode = {
 };
 
 /** Initialize tile state when a new tile is created via drag-drop */
-function handleTileAdded(paneId: string, specId: string, initialData?: unknown) {
-  console.log("[handleTileAdded]", { paneId, specId, initialData });
-
+function handleTileAdded(
+  paneId: string,
+  specId: string,
+  initialData?: unknown,
+) {
   if (specId === "query" && initialData && typeof initialData === "object") {
     const data = initialData as { query?: string; execute?: boolean };
     if (data.query) {
@@ -72,7 +74,11 @@ function handleTileAdded(paneId: string, specId: string, initialData?: unknown) 
           .query(data.query)
           .then((table) => setQueryResult(paneId, table, null))
           .catch((e) =>
-            setQueryResult(paneId, null, e instanceof Error ? e : new Error(String(e))),
+            setQueryResult(
+              paneId,
+              null,
+              e instanceof Error ? e : new Error(String(e)),
+            ),
           );
       }
     }
@@ -110,7 +116,12 @@ function handleTileAdded(paneId: string, specId: string, initialData?: unknown) 
           .query(data.query)
           .then((table) => setSmartVizResult(paneId, data.query!, table, null))
           .catch((e) =>
-            setSmartVizResult(paneId, data.query!, null, e instanceof Error ? e : new Error(String(e))),
+            setSmartVizResult(
+              paneId,
+              data.query!,
+              null,
+              e instanceof Error ? e : new Error(String(e)),
+            ),
           );
       }
     }
