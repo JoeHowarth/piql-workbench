@@ -1,11 +1,7 @@
-import {
-  BarChart,
-  type BarChartConfig,
-  isNumericType,
-  useArrowData,
-} from "query-viz";
+import { BarChart, useArrowData } from "query-viz";
 import { createMemo, Show } from "solid-js";
 import { type TileSpec, usePaneId } from "workbench";
+import { inferBarChartConfig } from "../chartInference";
 import {
   getChartState,
   setChartLoading,
@@ -47,28 +43,7 @@ function ChartContent() {
   const arrowData = useArrowData(() => state().table);
 
   // Auto-infer chart config from schema
-  const chartConfig = createMemo((): BarChartConfig | null => {
-    const { schema } = arrowData;
-    if (schema.length === 0) return null;
-
-    // Find first string column for category axis
-    // Arrow can encode strings as Utf8, LargeUtf8, or Dictionary<..., Utf8>
-    const categoryCol = schema.find(
-      (col) =>
-        col.type === "Utf8" ||
-        col.type === "LargeUtf8" ||
-        col.type.includes("Utf8"),
-    );
-    // Find first numeric column for value
-    const valueCol = schema.find((col) => isNumericType(col.type));
-
-    if (!categoryCol || !valueCol) return null;
-
-    return {
-      categoryAxis: { column: categoryCol.name },
-      series: [{ column: valueCol.name }],
-    };
-  });
+  const chartConfig = createMemo(() => inferBarChartConfig(arrowData.schema));
 
   return (
     <div class="h-full grid grid-rows-[auto_1fr]">

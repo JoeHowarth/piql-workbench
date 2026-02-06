@@ -1,19 +1,25 @@
 import {
   BarChart,
-  type BarChartConfig,
   DataFrameTable,
   LineChart,
-  type LineChartConfig,
   ScatterChart,
-  type ScatterChartConfig,
-  isNumericType,
-  isTemporalType,
   useArrowData,
 } from "query-viz";
 import { createMemo, createSignal, For, Match, Show, Switch } from "solid-js";
-import { type TileSpec, useFocusMode, usePaneId, useWorkbench } from "workbench";
 import {
-  type VizType,
+  type TileSpec,
+  useFocusMode,
+  usePaneId,
+  useWorkbench,
+} from "workbench";
+import {
+  inferBarChartConfig,
+  inferLineChartConfig,
+  inferScatterChartConfig,
+} from "../chartInference";
+import { CodeInput } from "../components/CodeInput";
+import { client } from "../piql";
+import {
   clearSmartVizContext,
   getSmartVizState,
   setSmartVizGeneratedQuery,
@@ -21,9 +27,8 @@ import {
   setSmartVizQuestion,
   setSmartVizResult,
   setVizType,
+  type VizType,
 } from "../smartVizStore";
-import { CodeInput } from "../components/CodeInput";
-import { client } from "../piql";
 
 export const smartVizTile = (): TileSpec => ({
   id: "smartviz",
@@ -42,7 +47,8 @@ const PROMPT_PREFIXES: Record<VizType, string> = {
   table: "",
   bar: "IMPORTANT: The result must have exactly 2 columns - one string/categorical column for labels and one numeric column for values. Use group_by() with an aggregation if needed.",
   line: "IMPORTANT: The result must have a temporal or sequential numeric column for the x-axis and one or more numeric columns for y values. Order by the x column.",
-  scatter: "IMPORTANT: The result must have 2-3 numeric columns for x, y, and optionally size dimensions. Return individual data points, not aggregations.",
+  scatter:
+    "IMPORTANT: The result must have 2-3 numeric columns for x, y, and optionally size dimensions. Return individual data points, not aggregations.",
 };
 
 /** Format first N rows of table as text for context */
@@ -145,73 +151,11 @@ User's follow-up request: ${q}`;
 
   const arrowData = useArrowData(() => state().table);
 
-  // Auto-config for bar chart
-  const barConfig = createMemo((): BarChartConfig | null => {
-    const { schema } = arrowData;
-    if (schema.length === 0) return null;
-
-    const categoryCol = schema.find(
-      (col) =>
-        col.type === "Utf8" ||
-        col.type === "LargeUtf8" ||
-        col.type.includes("Utf8"),
-    );
-    const valueCol = schema.find((col) => isNumericType(col.type));
-
-    if (!categoryCol || !valueCol) return null;
-
-    return {
-      categoryAxis: { column: categoryCol.name },
-      series: [{ column: valueCol.name }],
-    };
-  });
-
-  // Auto-config for line chart
-  const lineConfig = createMemo((): LineChartConfig | null => {
-    const { schema } = arrowData;
-    if (schema.length === 0) return null;
-
-    const xCol =
-      schema.find((col) => isTemporalType(col.type)) ||
-      schema.find((col) => isNumericType(col.type));
-
-    if (!xCol) return null;
-
-    const yCols = schema.filter(
-      (col) => col.name !== xCol.name && isNumericType(col.type),
-    );
-
-    if (yCols.length === 0) return null;
-
-    return {
-      xAxis: { column: xCol.name },
-      series: yCols.map((col) => ({ column: col.name })),
-      smooth: true,
-    };
-  });
-
-  // Auto-config for scatter chart
-  const scatterConfig = createMemo((): ScatterChartConfig | null => {
-    const { schema } = arrowData;
-    if (schema.length === 0) return null;
-
-    const numericCols = schema.filter((col) => isNumericType(col.type));
-
-    if (numericCols.length < 2) return null;
-
-    const config: ScatterChartConfig = {
-      dimensions: {
-        x: numericCols[0].name,
-        y: numericCols[1].name,
-      },
-    };
-
-    if (numericCols.length >= 3) {
-      config.dimensions.size = numericCols[2].name;
-    }
-
-    return config;
-  });
+  const barConfig = createMemo(() => inferBarChartConfig(arrowData.schema));
+  const lineConfig = createMemo(() => inferLineChartConfig(arrowData.schema));
+  const scatterConfig = createMemo(() =>
+    inferScatterChartConfig(arrowData.schema),
+  );
 
   return (
     <div class="h-full flex flex-col">
@@ -276,7 +220,11 @@ User's follow-up request: ${q}`;
                   submitQuestion();
                 }
               }}
-              placeholder={hasContext() ? "Refine: filter, group, add columns..." : "Ask a question... (Enter to submit)"}
+              placeholder={
+                hasContext()
+                  ? "Refine: filter, group, add columns..."
+                  : "Ask a question... (Enter to submit)"
+              }
               rows={1}
               class="flex-1 px-2 py-1 text-sm border border-gray-300 dark:border-gray-600 rounded bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 resize-none overflow-hidden"
             />
@@ -328,10 +276,7 @@ User's follow-up request: ${q}`;
               />
             </Match>
             <Match when={state().vizType === "bar" && barConfig()}>
-              <BarChart
-                table={() => state().table}
-                config={barConfig()!}
-              />
+              <BarChart table={() => state().table} config={barConfig()!} />
             </Match>
             <Match when={state().vizType === "bar" && !barConfig()}>
               <div class="h-full flex items-center justify-center text-gray-400 dark:text-gray-500 text-sm">
@@ -339,10 +284,7 @@ User's follow-up request: ${q}`;
               </div>
             </Match>
             <Match when={state().vizType === "line" && lineConfig()}>
-              <LineChart
-                table={() => state().table}
-                config={lineConfig()!}
-              />
+              <LineChart table={() => state().table} config={lineConfig()!} />
             </Match>
             <Match when={state().vizType === "line" && !lineConfig()}>
               <div class="h-full flex items-center justify-center text-gray-400 dark:text-gray-500 text-sm">
@@ -369,7 +311,6 @@ User's follow-up request: ${q}`;
           </div>
         </Show>
       </div>
-
     </div>
   );
 }

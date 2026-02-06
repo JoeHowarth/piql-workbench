@@ -1,19 +1,14 @@
-import {
-  LineChart,
-  type LineChartConfig,
-  isNumericType,
-  isTemporalType,
-  useArrowData,
-} from "query-viz";
+import { LineChart, useArrowData } from "query-viz";
 import { createMemo, Show } from "solid-js";
 import { type TileSpec, usePaneId } from "workbench";
+import { inferLineChartConfig } from "../chartInference";
+import { CodeInput } from "../components/CodeInput";
 import {
   getLineState,
   setLineLoading,
   setLineQuery,
   setLineResult,
 } from "../lineStore";
-import { CodeInput } from "../components/CodeInput";
 import { client } from "../piql";
 
 export const lineChartTile = (): TileSpec => ({
@@ -46,33 +41,7 @@ function LineChartContent() {
 
   const arrowData = useArrowData(() => state().table);
 
-  // Auto-infer line chart config from schema
-  // xAxis: first numeric or temporal column
-  // series: remaining numeric columns
-  const chartConfig = createMemo((): LineChartConfig | null => {
-    const { schema } = arrowData;
-    if (schema.length === 0) return null;
-
-    // Find x-axis column (prefer temporal, then numeric)
-    const xCol =
-      schema.find((col) => isTemporalType(col.type)) ||
-      schema.find((col) => isNumericType(col.type));
-
-    if (!xCol) return null;
-
-    // Find y-axis columns (numeric columns excluding x)
-    const yCols = schema.filter(
-      (col) => col.name !== xCol.name && isNumericType(col.type),
-    );
-
-    if (yCols.length === 0) return null;
-
-    return {
-      xAxis: { column: xCol.name },
-      series: yCols.map((col) => ({ column: col.name })),
-      smooth: true,
-    };
-  });
+  const chartConfig = createMemo(() => inferLineChartConfig(arrowData.schema));
 
   return (
     <div class="h-full grid grid-rows-[auto_1fr]">
@@ -101,10 +70,7 @@ function LineChartContent() {
         </Show>
 
         <Show when={state().table && chartConfig()}>
-          <LineChart
-            table={() => state().table}
-            config={chartConfig()!}
-          />
+          <LineChart table={() => state().table} config={chartConfig()!} />
         </Show>
 
         <Show when={state().table && !chartConfig()}>

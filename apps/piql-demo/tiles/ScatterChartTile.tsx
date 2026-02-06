@@ -1,19 +1,15 @@
-import {
-  ScatterChart,
-  type ScatterChartConfig,
-  isNumericType,
-  useArrowData,
-} from "query-viz";
+import { ScatterChart, useArrowData } from "query-viz";
 import { createMemo, Show } from "solid-js";
 import { type TileSpec, usePaneId } from "workbench";
+import { inferScatterChartConfig } from "../chartInference";
+import { CodeInput } from "../components/CodeInput";
+import { client } from "../piql";
 import {
   getScatterState,
   setScatterLoading,
   setScatterQuery,
   setScatterResult,
 } from "../scatterStore";
-import { CodeInput } from "../components/CodeInput";
-import { client } from "../piql";
 
 export const scatterChartTile = (): TileSpec => ({
   id: "scatter",
@@ -45,33 +41,9 @@ function ScatterChartContent() {
 
   const arrowData = useArrowData(() => state().table);
 
-  // Auto-infer scatter chart config from schema
-  // x: first numeric column
-  // y: second numeric column
-  // size: third numeric column (optional)
-  const chartConfig = createMemo((): ScatterChartConfig | null => {
-    const { schema } = arrowData;
-    if (schema.length === 0) return null;
-
-    // Find numeric columns
-    const numericCols = schema.filter((col) => isNumericType(col.type));
-
-    if (numericCols.length < 2) return null;
-
-    const config: ScatterChartConfig = {
-      dimensions: {
-        x: numericCols[0].name,
-        y: numericCols[1].name,
-      },
-    };
-
-    // Add size dimension if we have a third numeric column
-    if (numericCols.length >= 3) {
-      config.dimensions.size = numericCols[2].name;
-    }
-
-    return config;
-  });
+  const chartConfig = createMemo(() =>
+    inferScatterChartConfig(arrowData.schema),
+  );
 
   return (
     <div class="h-full grid grid-rows-[auto_1fr]">
@@ -100,10 +72,7 @@ function ScatterChartContent() {
         </Show>
 
         <Show when={state().table && chartConfig()}>
-          <ScatterChart
-            table={() => state().table}
-            config={chartConfig()!}
-          />
+          <ScatterChart table={() => state().table} config={chartConfig()!} />
         </Show>
 
         <Show when={state().table && !chartConfig()}>
