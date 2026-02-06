@@ -1,9 +1,21 @@
-import { describe, expect, it } from "bun:test";
+import { beforeEach, describe, expect, it } from "bun:test";
 
 // We need to test the store behavior, but the store uses solid-js/store
 // which requires a reactive context. Let's test the logic directly.
 
 describe("QueryStore", () => {
+  beforeEach(async () => {
+    const { clearQueryState } = await import("./queryStore");
+    [
+      "test-pane-1",
+      "test-pane-2",
+      "test-pane-3",
+      "pane-a",
+      "pane-b",
+      "persistent-pane",
+    ].forEach((paneId) => clearQueryState(paneId));
+  });
+
   // Since solid-js store is reactive and requires a runtime,
   // we'll test by importing and calling the functions directly
 

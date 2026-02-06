@@ -1,14 +1,16 @@
-import { describe, expect, it, beforeEach, mock } from "bun:test";
+import { afterEach, beforeEach, describe, expect, it, mock } from "bun:test";
 import {
+  clearQueryState,
   getQueryState,
-  setQueryText,
   setQueryLoading,
   setQueryResult,
-  clearQueryState,
+  setQueryText,
 } from "./queryStore";
 
 // Mock client for testing execute behavior
-const mockQuery = mock(() => Promise.resolve({ numRows: 0 } as any));
+const mockQuery = mock((_query: string) =>
+  Promise.resolve({ numRows: 0 } as { numRows: number }),
+);
 
 /**
  * Test the handleTileAdded logic in isolation.
@@ -29,7 +31,11 @@ function handleTileAdded(
         mockQuery(data.query)
           .then((table) => setQueryResult(paneId, table, null))
           .catch((e) =>
-            setQueryResult(paneId, null, e instanceof Error ? e : new Error(String(e)))
+            setQueryResult(
+              paneId,
+              null,
+              e instanceof Error ? e : new Error(String(e)),
+            ),
           );
       }
     }
@@ -37,11 +43,14 @@ function handleTileAdded(
 }
 
 describe("handleTileAdded", () => {
+  const testPaneIds = ["test-pane-1", "test-pane-2", "test-pane-3"] as const;
+
   beforeEach(() => {
-    // Clean up any test state
-    clearQueryState("test-pane-1");
-    clearQueryState("test-pane-2");
-    clearQueryState("test-pane-3");
+    testPaneIds.forEach((paneId) => clearQueryState(paneId));
+  });
+
+  afterEach(() => {
+    testPaneIds.forEach((paneId) => clearQueryState(paneId));
   });
 
   it("sets query text for query tiles with initialData", () => {
