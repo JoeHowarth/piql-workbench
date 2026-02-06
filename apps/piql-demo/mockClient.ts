@@ -13,6 +13,24 @@ function createMockTable(rowCount: number): Table {
 }
 
 export function createMockClient(): PiqlClient {
+  const buildQueryFromQuestion = (
+    question: string,
+  ): { query: string; rowCount: number } => {
+    const lower = question.toLowerCase();
+    const dataframe = lower.includes("order")
+      ? "orders"
+      : lower.includes("user")
+        ? "users"
+        : "items";
+    const countMatch = lower.match(/\b(\d+)\b/);
+    const rowCount = countMatch ? Number.parseInt(countMatch[1], 10) : 25;
+    const clamped = Math.max(1, Math.min(rowCount, 100));
+    return {
+      query: `${dataframe}.head(${clamped})`,
+      rowCount: clamped,
+    };
+  };
+
   return {
     async listDataframes() {
       await new Promise((r) => setTimeout(r, 100));
@@ -40,6 +58,17 @@ export function createMockClient(): PiqlClient {
       }, 1000);
 
       return () => clearInterval(interval);
+    },
+
+    async ask(question, execute) {
+      await new Promise((r) => setTimeout(r, 120));
+      const { query, rowCount } = buildQueryFromQuestion(question);
+
+      if (!execute) {
+        return { query };
+      }
+
+      return { query, table: createMockTable(rowCount) };
     },
   };
 }
