@@ -17,16 +17,12 @@ interface Props {
 export const DataFrameTable: Component<Props> = (props) => {
   const store = useArrowData(props.table);
 
-  // Create table state - needs to react to schema changes
-  const state = createMemo(() => {
-    return useTableState(store.schema, props.config);
-  });
-
-  // Derive filtered/sorted rows
-  const derivedRows = createMemo(() => {
-    const s = state();
-    return useDerivedRows(store.rows, s.sortBy, s.filters);
-  });
+  const state = useTableState(() => store.schema, props.config);
+  const derivedRows = useDerivedRows(
+    () => store.rows,
+    state.sortBy,
+    state.filters,
+  );
 
   // Filter out hidden columns
   const visibleColumns = createMemo(() => {
@@ -46,13 +42,13 @@ export const DataFrameTable: Component<Props> = (props) => {
         <TableHeader
           columns={visibleColumns()}
           config={props.config?.columns}
-          state={state()}
+          state={state}
           rows={store.rows}
         />
         <TableBody
           columns={visibleColumns()}
-          rows={derivedRows()()}
-          columnWidths={state().columnWidths()}
+          rows={derivedRows()}
+          columnWidths={state.columnWidths()}
           columnConfig={props.config?.columns}
           striped={props.config?.stripedRows}
           compact={props.config?.density === "compact"}

@@ -38,12 +38,12 @@ function matchesFilter(value: unknown, filter: FilterValue): boolean {
 }
 
 export function useDerivedRows(
-  rows: Record<string, unknown>[],
+  rows: Accessor<Record<string, unknown>[]>,
   sortBy: Accessor<SortState>,
   filters: Accessor<Record<string, FilterValue>>,
 ) {
   return createMemo(() => {
-    let result = [...rows];
+    let result = [...rows()];
 
     // Apply filters
     const activeFilters = filters();
