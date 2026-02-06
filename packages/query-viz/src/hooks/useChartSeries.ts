@@ -1,23 +1,23 @@
-import type { EChartsOption } from "echarts";
 import type { Table } from "apache-arrow";
+import type { EChartsOption } from "echarts";
 import type { Accessor } from "solid-js";
 import { createMemo } from "solid-js";
-import { useArrowData } from "./useArrowData";
-import { isTemporalType, isNumericType } from "../lib/arrow";
-import type { ColumnSchema } from "../lib/types";
-import type {
-  LineChartConfig,
-  BarChartConfig,
-  ScatterChartConfig,
-  AxisType,
-} from "../lib/chartTypes";
+import { isNumericType, isTemporalType } from "../lib/arrow";
 import {
-  CHART_PALETTE,
-  CHART_GRID,
-  CHART_TEXT_STYLE,
   CHART_AXIS_STYLE,
+  CHART_GRID,
+  CHART_PALETTE,
+  CHART_TEXT_STYLE,
   getSeriesColor,
 } from "../lib/chartPalette";
+import type {
+  AxisType,
+  BarChartConfig,
+  LineChartConfig,
+  ScatterChartConfig,
+} from "../lib/chartTypes";
+import type { ColumnSchema } from "../lib/types";
+import { useArrowData } from "./useArrowData";
 
 // Infer axis type from Arrow column type
 function inferAxisType(schema: ColumnSchema[], column: string): AxisType {
@@ -28,11 +28,24 @@ function inferAxisType(schema: ColumnSchema[], column: string): AxisType {
   return "category";
 }
 
-// Convert bigint timestamps to JS Date (for time series)
-function toChartValue(value: unknown): string | number | Date | null {
+// Convert timestamp-like value to JS Date for time axes.
+function toTimeValue(value: unknown): string | Date | null {
   if (value === null || value === undefined) return null;
+  if (value instanceof Date) return value;
   if (typeof value === "bigint") return new Date(Number(value));
-  if (typeof value === "number") return value;
+  if (typeof value === "number") return new Date(value);
+  const parsed = new Date(String(value));
+  if (Number.isNaN(parsed.getTime())) return String(value);
+  return parsed;
+}
+
+function toAxisValue(
+  value: unknown,
+  axisType: AxisType,
+): string | number | Date | null {
+  if (axisType === "time") return toTimeValue(value);
+  if (axisType === "value") return toNumericValue(value);
+  if (value === null || value === undefined) return null;
   return String(value);
 }
 
@@ -43,6 +56,22 @@ function toNumericValue(value: unknown): number | null {
   if (typeof value === "number") return value;
   const parsed = Number(value);
   return Number.isNaN(parsed) ? null : parsed;
+}
+
+function toSeriesValue(
+  value: unknown,
+  columnType?: string,
+): string | number | Date | null {
+  if (columnType && isNumericType(columnType)) {
+    return toNumericValue(value);
+  }
+  if (columnType && isTemporalType(columnType)) {
+    return toTimeValue(value);
+  }
+  if (value === null || value === undefined) return null;
+  if (typeof value === "bigint") return Number(value);
+  if (typeof value === "number") return value;
+  return String(value);
 }
 
 // ============ Line Chart ============
@@ -60,20 +89,26 @@ export function useLineChartOptions(
 
     const xCol = cfg.xAxis.column;
     const xType = cfg.xAxis.type ?? inferAxisType(schema, xCol);
-    const categories = rows.map((r) => toChartValue(r[xCol]));
+    const categories = rows.map((r) => toAxisValue(r[xCol], xType));
 
-    const series = cfg.series.map((s, i) => ({
-      type: "line" as const,
-      name: s.label ?? s.column,
-      data:
-        xType === "time"
-          ? rows.map((r) => [toChartValue(r[xCol]), toChartValue(r[s.column])])
-          : rows.map((r) => toChartValue(r[s.column])),
-      yAxisIndex: s.yAxisIndex ?? 0,
-      smooth: cfg.smooth,
-      areaStyle: cfg.area ? {} : undefined,
-      itemStyle: { color: getSeriesColor(i, s.color) },
-    }));
+    const series = cfg.series.map((s, i) => {
+      const seriesCol = schema.find((col) => col.name === s.column);
+      return {
+        type: "line" as const,
+        name: s.label ?? s.column,
+        data:
+          xType === "time"
+            ? rows.map((r) => [
+                toAxisValue(r[xCol], xType),
+                toSeriesValue(r[s.column], seriesCol?.type),
+              ])
+            : rows.map((r) => toSeriesValue(r[s.column], seriesCol?.type)),
+        yAxisIndex: s.yAxisIndex ?? 0,
+        smooth: cfg.smooth,
+        areaStyle: cfg.area ? {} : undefined,
+        itemStyle: { color: getSeriesColor(i, s.color) },
+      };
+    });
 
     const yAxes: EChartsOption["yAxis"] = [
       {
@@ -131,23 +166,22 @@ export function useBarChartOptions(
   return createMemo((): EChartsOption | null => {
     const { rows, schema } = data;
     const cfg = config();
-    console.log("[useBarChartOptions] rows.length:", rows.length, "schema:", schema, "config:", cfg);
-    if (rows.length === 0) {
-      console.log("[useBarChartOptions] No rows, returning null");
-      return null;
-    }
+    if (rows.length === 0) return null;
 
     const catCol = cfg.categoryAxis.column;
     const categories = rows.map((r) => String(r[catCol] ?? ""));
     const isHorizontal = cfg.orientation === "horizontal";
 
-    const series = cfg.series.map((s, i) => ({
-      type: "bar" as const,
-      name: s.label ?? s.column,
-      data: rows.map((r) => toChartValue(r[s.column])),
-      stack: cfg.mode === "stacked" ? "total" : undefined,
-      itemStyle: { color: getSeriesColor(i, s.color) },
-    }));
+    const series = cfg.series.map((s, i) => {
+      const seriesCol = schema.find((col) => col.name === s.column);
+      return {
+        type: "bar" as const,
+        name: s.label ?? s.column,
+        data: rows.map((r) => toSeriesValue(r[s.column], seriesCol?.type)),
+        stack: cfg.mode === "stacked" ? "total" : undefined,
+        itemStyle: { color: getSeriesColor(i, s.color) },
+      };
+    });
 
     const categoryAxisConfig = {
       type: "category" as const,
@@ -198,14 +232,19 @@ export function useScatterChartOptions(
 
     // Build scatter data points - use numeric values only (no date conversion)
     const scatterData = rows.map((r) => {
-      const point: (number | null)[] = [toNumericValue(r[x]), toNumericValue(r[y])];
+      const point: (number | null)[] = [
+        toNumericValue(r[x]),
+        toNumericValue(r[y]),
+      ];
       if (size) point.push(toNumericValue(r[size]));
       return point;
     });
 
     // Calculate base symbol size - scales inversely with data count
     // Few points = larger dots, many points = smaller dots
-    const baseSize = size ? undefined : Math.max(6, Math.min(12, 100 / Math.sqrt(rows.length)));
+    const baseSize = size
+      ? undefined
+      : Math.max(6, Math.min(12, 100 / Math.sqrt(rows.length)));
 
     // Calculate size normalization if size dimension is present
     let symbolSize: number | ((val: number[]) => number) = baseSize ?? 12;
@@ -279,19 +318,25 @@ export function useScatterChartOptions(
         {
           query: { maxWidth: 300 },
           option: {
-            series: [{ symbolSize: size ? symbolSize : Math.max(4, baseSize! * 0.5) }],
+            series: [
+              { symbolSize: size ? symbolSize : Math.max(4, baseSize! * 0.5) },
+            ],
           },
         },
         {
           query: { minWidth: 300, maxWidth: 500 },
           option: {
-            series: [{ symbolSize: size ? symbolSize : Math.max(5, baseSize! * 0.7) }],
+            series: [
+              { symbolSize: size ? symbolSize : Math.max(5, baseSize! * 0.7) },
+            ],
           },
         },
         {
           query: { minWidth: 800 },
           option: {
-            series: [{ symbolSize: size ? symbolSize : Math.min(16, baseSize! * 1.3) }],
+            series: [
+              { symbolSize: size ? symbolSize : Math.min(16, baseSize! * 1.3) },
+            ],
           },
         },
       ],
