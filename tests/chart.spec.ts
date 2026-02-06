@@ -58,47 +58,6 @@ test.describe("Chart Tile - Height and Sizing", () => {
     const canvas = chartPane.locator("canvas");
     await expect(canvas).toBeVisible({ timeout: 3000 });
 
-    // Debug: capture DOM structure and computed styles
-    const debugInfo = await chartPane.evaluate((pane) => {
-      const getElementInfo = (el: Element | null, name: string) => {
-        if (!el) return { name, exists: false };
-        const rect = el.getBoundingClientRect();
-        const style = window.getComputedStyle(el);
-        return {
-          name,
-          tag: el.tagName,
-          classes: el.className,
-          rect: { x: rect.x, y: rect.y, width: rect.width, height: rect.height },
-          position: style.position,
-          overflow: style.overflow,
-          display: style.display,
-        };
-      };
-
-      // Walk up from canvas to find the DOM structure
-      const canvasEl = pane.querySelector("canvas");
-      const elements: ReturnType<typeof getElementInfo>[] = [];
-
-      let current: Element | null = canvasEl;
-      let depth = 0;
-      while (current && depth < 10) {
-        elements.push(getElementInfo(current, `depth-${depth}`));
-        current = current.parentElement;
-        depth++;
-      }
-
-      // Also get the input area
-      const inputArea = pane.querySelector('[data-testid="chart-controls"]');
-      elements.push(getElementInfo(inputArea, "input-area"));
-
-      return elements;
-    });
-
-    console.log("DOM Debug Info:");
-    for (const el of debugInfo) {
-      console.log(JSON.stringify(el, null, 2));
-    }
-
     // Get the input header area (contains editor and Run button)
     const inputArea = chartPane.getByTestId("chart-controls");
     const inputBox = await inputArea.boundingBox();
@@ -106,9 +65,6 @@ test.describe("Chart Tile - Height and Sizing", () => {
 
     expect(inputBox).not.toBeNull();
     expect(canvasBox).not.toBeNull();
-
-    console.log(`Input area: y=${inputBox!.y}, height=${inputBox!.height}, bottom=${inputBox!.y + inputBox!.height}`);
-    console.log(`Canvas: y=${canvasBox!.y}, height=${canvasBox!.height}`);
 
     // The canvas should not overlap with the input area
     // Canvas top should be at or below the input area bottom

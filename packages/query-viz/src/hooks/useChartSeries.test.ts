@@ -12,12 +12,6 @@ describe("useBarChartOptions", () => {
       total_amount: [61250, 63750, 65000],
     });
 
-    console.log(
-      "Test table schema:",
-      table.schema.fields.map((f) => ({ name: f.name, type: String(f.type) })),
-    );
-    console.log("Test table numRows:", table.numRows);
-
     const config: BarChartConfig = {
       categoryAxis: { column: "tx_type" },
       series: [{ column: "total_amount" }],
@@ -34,7 +28,6 @@ describe("useBarChartOptions", () => {
 
       // Access the memo to trigger computation
       const options = result();
-      console.log("Generated options:", JSON.stringify(options, null, 2));
 
       expect(options).not.toBeNull();
       expect(options?.xAxis).toBeDefined();
@@ -69,8 +62,6 @@ describe("useBarChartOptions", () => {
 
       const result = useBarChartOptions(tableSignal, configSignal);
       const options = result();
-
-      console.log("Empty table options:", options);
       expect(options).toBeNull();
 
       dispose();
@@ -91,8 +82,6 @@ describe("useBarChartOptions", () => {
 
       const result = useBarChartOptions(tableSignal, configSignal);
       const options = result();
-
-      console.log("Null table options:", options);
       expect(options).toBeNull();
 
       dispose();
