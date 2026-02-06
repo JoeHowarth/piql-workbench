@@ -1,4 +1,5 @@
 import { afterEach, beforeEach, describe, expect, it, mock } from "bun:test";
+import type { Table } from "apache-arrow";
 import {
   clearQueryState,
   getQueryState,
@@ -9,7 +10,7 @@ import {
 
 // Mock client for testing execute behavior
 const mockQuery = mock((_query: string) =>
-  Promise.resolve({ numRows: 0 } as { numRows: number }),
+  Promise.resolve({ numRows: 0 } as unknown as Table),
 );
 
 /**
@@ -29,8 +30,8 @@ function handleTileAdded(
       if (data.execute) {
         setQueryLoading(paneId, true);
         mockQuery(data.query)
-          .then((table) => setQueryResult(paneId, table, null))
-          .catch((e) =>
+          .then((table: Table) => setQueryResult(paneId, table, null))
+          .catch((e: unknown) =>
             setQueryResult(
               paneId,
               null,

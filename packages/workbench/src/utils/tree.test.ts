@@ -1,13 +1,12 @@
-import { describe, it, expect, beforeEach } from "bun:test";
+import { describe, expect, it } from "bun:test";
 import type { LeafPane, PaneNode, SizeSpec, SplitPane } from "../types";
 import {
   findPane,
   findParent,
   insertTile,
-  removePane,
   movePane,
+  removePane,
   updateSizes,
-  type InsertResult,
 } from "./tree";
 
 // ============================================================================
@@ -22,7 +21,7 @@ function split(
   id: string,
   dir: "h" | "v",
   sizes: SizeSpec[],
-  children: PaneNode[]
+  children: PaneNode[],
 ): SplitPane {
   return { type: "split", id, dir, sizes, children };
 }
@@ -43,7 +42,7 @@ function assertTreeInvariants(tree: PaneNode | null): void {
 
     // INV-3: Percentage sizes sum to ~100
     const percentages = tree.sizes.filter(
-      (s): s is number => typeof s === "number"
+      (s): s is number => typeof s === "number",
     );
     if (percentages.length > 0) {
       const sum = percentages.reduce((a, b) => a + b, 0);
@@ -78,27 +77,36 @@ describe("findPane", () => {
   });
 
   it("finds root split", () => {
-    const tree = split("root", "h", [50, 50], [
-      leaf("a", "spec-a"),
-      leaf("b", "spec-b"),
-    ]);
+    const tree = split(
+      "root",
+      "h",
+      [50, 50],
+      [leaf("a", "spec-a"), leaf("b", "spec-b")],
+    );
     expect(findPane(tree, "root")).toBe(tree);
   });
 
   it("finds nested leaf", () => {
     const target = leaf("deep", "spec-deep");
-    const tree = split("root", "h", [50, 50], [
-      split("left", "v", [50, 50], [leaf("a", "spec-a"), target]),
-      leaf("b", "spec-b"),
-    ]);
+    const tree = split(
+      "root",
+      "h",
+      [50, 50],
+      [
+        split("left", "v", [50, 50], [leaf("a", "spec-a"), target]),
+        leaf("b", "spec-b"),
+      ],
+    );
     expect(findPane(tree, "deep")).toBe(target);
   });
 
   it("returns null for non-existent id", () => {
-    const tree = split("root", "h", [50, 50], [
-      leaf("a", "spec-a"),
-      leaf("b", "spec-b"),
-    ]);
+    const tree = split(
+      "root",
+      "h",
+      [50, 50],
+      [leaf("a", "spec-a"), leaf("b", "spec-b")],
+    );
     expect(findPane(tree, "nonexistent")).toBeNull();
   });
 });
@@ -109,28 +117,39 @@ describe("findPane", () => {
 
 describe("findParent", () => {
   it("returns null for root", () => {
-    const tree = split("root", "h", [50, 50], [
-      leaf("a", "spec-a"),
-      leaf("b", "spec-b"),
-    ]);
+    const tree = split(
+      "root",
+      "h",
+      [50, 50],
+      [leaf("a", "spec-a"), leaf("b", "spec-b")],
+    );
     expect(findParent(tree, "root")).toBeNull();
   });
 
   it("finds parent of direct child", () => {
-    const tree = split("root", "h", [50, 50], [
-      leaf("a", "spec-a"),
-      leaf("b", "spec-b"),
-    ]);
+    const tree = split(
+      "root",
+      "h",
+      [50, 50],
+      [leaf("a", "spec-a"), leaf("b", "spec-b")],
+    );
     expect(findParent(tree, "a")).toBe(tree);
     expect(findParent(tree, "b")).toBe(tree);
   });
 
   it("finds parent of deeply nested node", () => {
-    const innerSplit = split("inner", "v", [50, 50], [
-      leaf("deep1", "spec-1"),
-      leaf("deep2", "spec-2"),
-    ]);
-    const tree = split("root", "h", [50, 50], [innerSplit, leaf("b", "spec-b")]);
+    const innerSplit = split(
+      "inner",
+      "v",
+      [50, 50],
+      [leaf("deep1", "spec-1"), leaf("deep2", "spec-2")],
+    );
+    const tree = split(
+      "root",
+      "h",
+      [50, 50],
+      [innerSplit, leaf("b", "spec-b")],
+    );
 
     expect(findParent(tree, "deep1")).toBe(innerSplit);
     expect(findParent(tree, "deep2")).toBe(innerSplit);
@@ -138,10 +157,12 @@ describe("findParent", () => {
   });
 
   it("returns null for non-existent id", () => {
-    const tree = split("root", "h", [50, 50], [
-      leaf("a", "spec-a"),
-      leaf("b", "spec-b"),
-    ]);
+    const tree = split(
+      "root",
+      "h",
+      [50, 50],
+      [leaf("a", "spec-a"), leaf("b", "spec-b")],
+    );
     expect(findParent(tree, "nonexistent")).toBeNull();
   });
 });
@@ -153,7 +174,12 @@ describe("findParent", () => {
 describe("insertTile - center drop", () => {
   it("replaces specId on center drop", () => {
     const tree = leaf("target", "old-spec");
-    const { tree: result, newPaneId } = insertTile(tree, "target", "center", "new-spec");
+    const { tree: result, newPaneId } = insertTile(
+      tree,
+      "target",
+      "center",
+      "new-spec",
+    );
 
     expect(result.type).toBe("leaf");
     expect((result as LeafPane).specId).toBe("new-spec");
@@ -163,10 +189,12 @@ describe("insertTile - center drop", () => {
   });
 
   it("replaces specId in nested leaf", () => {
-    const tree = split("root", "h", [50, 50], [
-      leaf("a", "spec-a"),
-      leaf("b", "spec-b"),
-    ]);
+    const tree = split(
+      "root",
+      "h",
+      [50, 50],
+      [leaf("a", "spec-a"), leaf("b", "spec-b")],
+    );
     const { tree: result } = insertTile(tree, "a", "center", "new-spec");
 
     const found = findPane(result, "a") as LeafPane;
@@ -175,10 +203,12 @@ describe("insertTile - center drop", () => {
   });
 
   it("does not change structure on center drop", () => {
-    const tree = split("root", "h", [50, 50], [
-      leaf("a", "spec-a"),
-      leaf("b", "spec-b"),
-    ]);
+    const tree = split(
+      "root",
+      "h",
+      [50, 50],
+      [leaf("a", "spec-a"), leaf("b", "spec-b")],
+    );
     const { tree: result } = insertTile(tree, "a", "center", "new-spec");
 
     expect(result.type).toBe("split");
@@ -194,14 +224,19 @@ describe("insertTile - center drop", () => {
 describe("insertTile - edge drops", () => {
   it("left drop creates horizontal split with new pane first", () => {
     const tree = leaf("target", "existing");
-    const { tree: result, newPaneId } = insertTile(tree, "target", "left", "new-spec");
+    const { tree: result, newPaneId } = insertTile(
+      tree,
+      "target",
+      "left",
+      "new-spec",
+    );
 
     expect(result.type).toBe("split");
     expect(newPaneId).not.toBeNull();
     const splitResult = result as SplitPane;
     expect(splitResult.dir).toBe("h");
     expect(splitResult.children[0].type).toBe("leaf");
-    expect(splitResult.children[0].id).toBe(newPaneId); // New pane has returned ID
+    expect(splitResult.children[0].id).toBe(newPaneId!); // New pane has returned ID
     expect((splitResult.children[0] as LeafPane).specId).toBe("new-spec");
     expect(splitResult.children[1].id).toBe("target");
     expect(splitResult.sizes).toEqual([50, 50]);
@@ -210,14 +245,19 @@ describe("insertTile - edge drops", () => {
 
   it("right drop creates horizontal split with new pane second", () => {
     const tree = leaf("target", "existing");
-    const { tree: result, newPaneId } = insertTile(tree, "target", "right", "new-spec");
+    const { tree: result, newPaneId } = insertTile(
+      tree,
+      "target",
+      "right",
+      "new-spec",
+    );
 
     expect(result.type).toBe("split");
     expect(newPaneId).not.toBeNull();
     const splitResult = result as SplitPane;
     expect(splitResult.dir).toBe("h");
     expect(splitResult.children[0].id).toBe("target");
-    expect(splitResult.children[1].id).toBe(newPaneId);
+    expect(splitResult.children[1].id).toBe(newPaneId!);
     expect((splitResult.children[1] as LeafPane).specId).toBe("new-spec");
     expect(splitResult.sizes).toEqual([50, 50]);
     assertTreeInvariants(result);
@@ -225,13 +265,18 @@ describe("insertTile - edge drops", () => {
 
   it("top drop creates vertical split with new pane first", () => {
     const tree = leaf("target", "existing");
-    const { tree: result, newPaneId } = insertTile(tree, "target", "top", "new-spec");
+    const { tree: result, newPaneId } = insertTile(
+      tree,
+      "target",
+      "top",
+      "new-spec",
+    );
 
     expect(result.type).toBe("split");
     expect(newPaneId).not.toBeNull();
     const splitResult = result as SplitPane;
     expect(splitResult.dir).toBe("v");
-    expect(splitResult.children[0].id).toBe(newPaneId);
+    expect(splitResult.children[0].id).toBe(newPaneId!);
     expect((splitResult.children[0] as LeafPane).specId).toBe("new-spec");
     expect(splitResult.children[1].id).toBe("target");
     assertTreeInvariants(result);
@@ -239,14 +284,19 @@ describe("insertTile - edge drops", () => {
 
   it("bottom drop creates vertical split with new pane second", () => {
     const tree = leaf("target", "existing");
-    const { tree: result, newPaneId } = insertTile(tree, "target", "bottom", "new-spec");
+    const { tree: result, newPaneId } = insertTile(
+      tree,
+      "target",
+      "bottom",
+      "new-spec",
+    );
 
     expect(result.type).toBe("split");
     expect(newPaneId).not.toBeNull();
     const splitResult = result as SplitPane;
     expect(splitResult.dir).toBe("v");
     expect(splitResult.children[0].id).toBe("target");
-    expect(splitResult.children[1].id).toBe(newPaneId);
+    expect(splitResult.children[1].id).toBe(newPaneId!);
     expect((splitResult.children[1] as LeafPane).specId).toBe("new-spec");
     assertTreeInvariants(result);
   });
@@ -261,13 +311,20 @@ describe("insertTile - edge drops", () => {
   });
 
   it("inserts into deeply nested pane", () => {
-    const tree = split("root", "h", [50, 50], [
-      split("left", "v", [50, 50], [
-        leaf("deep", "spec-deep"),
-        leaf("other", "spec-other"),
-      ]),
-      leaf("right", "spec-right"),
-    ]);
+    const tree = split(
+      "root",
+      "h",
+      [50, 50],
+      [
+        split(
+          "left",
+          "v",
+          [50, 50],
+          [leaf("deep", "spec-deep"), leaf("other", "spec-other")],
+        ),
+        leaf("right", "spec-right"),
+      ],
+    );
 
     const { tree: result } = insertTile(tree, "deep", "right", "new-spec");
 
@@ -283,7 +340,13 @@ describe("insertTile - edge drops", () => {
 
   it("uses provided paneId when given", () => {
     const tree = leaf("target", "existing");
-    const { tree: result, newPaneId } = insertTile(tree, "target", "right", "new-spec", "custom-id");
+    const { tree: result, newPaneId } = insertTile(
+      tree,
+      "target",
+      "right",
+      "new-spec",
+      "custom-id",
+    );
 
     expect(newPaneId).toBe("custom-id");
     const newPane = findPane(result, "custom-id");
@@ -304,19 +367,23 @@ describe("removePane - basic", () => {
   });
 
   it("returns null when removing root split", () => {
-    const tree = split("root", "h", [50, 50], [
-      leaf("a", "spec-a"),
-      leaf("b", "spec-b"),
-    ]);
+    const tree = split(
+      "root",
+      "h",
+      [50, 50],
+      [leaf("a", "spec-a"), leaf("b", "spec-b")],
+    );
     const result = removePane(tree, "root");
     expect(result).toBeNull();
   });
 
   it("collapses 2-child split when removing one child", () => {
-    const tree = split("root", "h", [50, 50], [
-      leaf("a", "spec-a"),
-      leaf("b", "spec-b"),
-    ]);
+    const tree = split(
+      "root",
+      "h",
+      [50, 50],
+      [leaf("a", "spec-a"), leaf("b", "spec-b")],
+    );
     const result = removePane(tree, "a");
 
     // Should collapse to remaining child
@@ -326,11 +393,12 @@ describe("removePane - basic", () => {
   });
 
   it("removes child from 3+ child split without collapse", () => {
-    const tree = split("root", "h", [30, 30, 40], [
-      leaf("a", "spec-a"),
-      leaf("b", "spec-b"),
-      leaf("c", "spec-c"),
-    ]);
+    const tree = split(
+      "root",
+      "h",
+      [30, 30, 40],
+      [leaf("a", "spec-a"), leaf("b", "spec-b"), leaf("c", "spec-c")],
+    );
     const result = removePane(tree, "b");
 
     expect(result).not.toBeNull();
@@ -352,10 +420,20 @@ describe("removePane - cascade collapse", () => {
   it("collapses parent when it becomes single-child", () => {
     // root (h) -> [left (v) -> [a, b], right]
     // Remove 'a' -> left collapses to 'b' -> root has [b, right]
-    const tree = split("root", "h", [50, 50], [
-      split("left", "v", [50, 50], [leaf("a", "spec-a"), leaf("b", "spec-b")]),
-      leaf("right", "spec-right"),
-    ]);
+    const tree = split(
+      "root",
+      "h",
+      [50, 50],
+      [
+        split(
+          "left",
+          "v",
+          [50, 50],
+          [leaf("a", "spec-a"), leaf("b", "spec-b")],
+        ),
+        leaf("right", "spec-right"),
+      ],
+    );
 
     const result = removePane(tree, "a");
 
@@ -373,16 +451,28 @@ describe("removePane - cascade collapse", () => {
     // root -> left -> inner -> [a, b]
     //      -> right
     // Remove 'a' -> inner collapses -> left collapses -> root has [b, right]
-    const tree = split("root", "h", [50, 50], [
-      split("left", "v", [50, 50], [
-        split("inner", "h", [50, 50], [
-          leaf("a", "spec-a"),
-          leaf("b", "spec-b"),
-        ]),
-        leaf("c", "spec-c"),
-      ]),
-      leaf("right", "spec-right"),
-    ]);
+    const tree = split(
+      "root",
+      "h",
+      [50, 50],
+      [
+        split(
+          "left",
+          "v",
+          [50, 50],
+          [
+            split(
+              "inner",
+              "h",
+              [50, 50],
+              [leaf("a", "spec-a"), leaf("b", "spec-b")],
+            ),
+            leaf("c", "spec-c"),
+          ],
+        ),
+        leaf("right", "spec-right"),
+      ],
+    );
 
     const result = removePane(tree, "a");
 
@@ -400,11 +490,12 @@ describe("removePane - cascade collapse", () => {
 
 describe("removePane - size normalization", () => {
   it("normalizes remaining percentages to sum to 100", () => {
-    const tree = split("root", "h", [30, 30, 40], [
-      leaf("a", "spec-a"),
-      leaf("b", "spec-b"),
-      leaf("c", "spec-c"),
-    ]);
+    const tree = split(
+      "root",
+      "h",
+      [30, 30, 40],
+      [leaf("a", "spec-a"), leaf("b", "spec-b"), leaf("c", "spec-c")],
+    );
 
     const result = removePane(tree, "b");
 
@@ -416,11 +507,12 @@ describe("removePane - size normalization", () => {
   });
 
   it("preserves pixel sizes during normalization", () => {
-    const tree = split("root", "h", [{ px: 100 }, 50, 50], [
-      leaf("a", "spec-a"),
-      leaf("b", "spec-b"),
-      leaf("c", "spec-c"),
-    ]);
+    const tree = split(
+      "root",
+      "h",
+      [{ px: 100 }, 50, 50],
+      [leaf("a", "spec-a"), leaf("b", "spec-b"), leaf("c", "spec-c")],
+    );
 
     const result = removePane(tree, "b");
 
@@ -436,11 +528,12 @@ describe("removePane - size normalization", () => {
   });
 
   it("handles all-pixel sizes (no normalization needed)", () => {
-    const tree = split("root", "h", [{ px: 100 }, { px: 200 }, { px: 300 }], [
-      leaf("a", "spec-a"),
-      leaf("b", "spec-b"),
-      leaf("c", "spec-c"),
-    ]);
+    const tree = split(
+      "root",
+      "h",
+      [{ px: 100 }, { px: 200 }, { px: 300 }],
+      [leaf("a", "spec-a"), leaf("b", "spec-b"), leaf("c", "spec-c")],
+    );
 
     const result = removePane(tree, "b");
 
@@ -457,20 +550,24 @@ describe("removePane - size normalization", () => {
 
 describe("movePane", () => {
   it("returns unchanged tree when moving to self", () => {
-    const tree = split("root", "h", [50, 50], [
-      leaf("a", "spec-a"),
-      leaf("b", "spec-b"),
-    ]);
+    const tree = split(
+      "root",
+      "h",
+      [50, 50],
+      [leaf("a", "spec-a"), leaf("b", "spec-b")],
+    );
 
     const result = movePane(tree, "a", "a", "right");
     expect(result).toBe(tree); // Same reference
   });
 
   it("moves pane to sibling", () => {
-    const tree = split("root", "h", [50, 50], [
-      leaf("a", "spec-a"),
-      leaf("b", "spec-b"),
-    ]);
+    const tree = split(
+      "root",
+      "h",
+      [50, 50],
+      [leaf("a", "spec-a"), leaf("b", "spec-b")],
+    );
 
     const result = movePane(tree, "a", "b", "right");
 
@@ -487,10 +584,20 @@ describe("movePane", () => {
   });
 
   it("moves pane to different branch", () => {
-    const tree = split("root", "h", [50, 50], [
-      split("left", "v", [50, 50], [leaf("a", "spec-a"), leaf("b", "spec-b")]),
-      leaf("right", "spec-right"),
-    ]);
+    const tree = split(
+      "root",
+      "h",
+      [50, 50],
+      [
+        split(
+          "left",
+          "v",
+          [50, 50],
+          [leaf("a", "spec-a"), leaf("b", "spec-b")],
+        ),
+        leaf("right", "spec-right"),
+      ],
+    );
 
     const result = movePane(tree, "a", "right", "bottom");
 
@@ -507,10 +614,20 @@ describe("movePane", () => {
   });
 
   it("handles move that causes source parent collapse", () => {
-    const tree = split("root", "h", [50, 50], [
-      split("left", "v", [50, 50], [leaf("a", "spec-a"), leaf("b", "spec-b")]),
-      leaf("right", "spec-right"),
-    ]);
+    const tree = split(
+      "root",
+      "h",
+      [50, 50],
+      [
+        split(
+          "left",
+          "v",
+          [50, 50],
+          [leaf("a", "spec-a"), leaf("b", "spec-b")],
+        ),
+        leaf("right", "spec-right"),
+      ],
+    );
 
     const result = movePane(tree, "a", "right", "left");
 
@@ -522,10 +639,12 @@ describe("movePane", () => {
 
   it("returns tree without source when target disappears", () => {
     // This happens when source and target are siblings in a 2-child split
-    const tree = split("root", "h", [50, 50], [
-      leaf("a", "spec-a"),
-      leaf("b", "spec-b"),
-    ]);
+    const tree = split(
+      "root",
+      "h",
+      [50, 50],
+      [leaf("a", "spec-a"), leaf("b", "spec-b")],
+    );
 
     // Moving 'a' causes root to collapse, 'b' becomes root, then 'b' doesn't exist
     // as a target anymore in the same form
@@ -539,14 +658,18 @@ describe("movePane", () => {
   });
 
   it("returns unchanged tree when trying to move non-leaf", () => {
-    const innerSplit = split("inner", "v", [50, 50], [
-      leaf("c", "spec-c"),
-      leaf("d", "spec-d"),
-    ]);
-    const tree = split("root", "h", [50, 50], [
-      leaf("a", "spec-a"),
-      innerSplit,
-    ]);
+    const innerSplit = split(
+      "inner",
+      "v",
+      [50, 50],
+      [leaf("c", "spec-c"), leaf("d", "spec-d")],
+    );
+    const tree = split(
+      "root",
+      "h",
+      [50, 50],
+      [leaf("a", "spec-a"), innerSplit],
+    );
 
     const result = movePane(tree, "inner", "a", "right");
     expect(result).toBe(tree); // Unchanged
@@ -555,10 +678,20 @@ describe("movePane", () => {
   it("preserves pane ID when moving", () => {
     // This is critical for state persistence - if the pane ID changes,
     // any state stored by that ID (like query text) will be lost
-    const tree = split("root", "h", [50, 50], [
-      split("left", "v", [50, 50], [leaf("a", "spec-a"), leaf("b", "spec-b")]),
-      leaf("target", "spec-target"),
-    ]);
+    const tree = split(
+      "root",
+      "h",
+      [50, 50],
+      [
+        split(
+          "left",
+          "v",
+          [50, 50],
+          [leaf("a", "spec-a"), leaf("b", "spec-b")],
+        ),
+        leaf("target", "spec-target"),
+      ],
+    );
 
     const result = movePane(tree, "a", "target", "right");
 
@@ -572,10 +705,12 @@ describe("movePane", () => {
   });
 
   it("preserves pane ID after multiple moves", () => {
-    let tree: PaneNode = split("root", "h", [50, 50], [
-      leaf("query-1", "query"),
-      leaf("query-2", "query"),
-    ]);
+    let tree: PaneNode = split(
+      "root",
+      "h",
+      [50, 50],
+      [leaf("query-1", "query"), leaf("query-2", "query")],
+    );
 
     // Move query-1 to the right of query-2
     tree = movePane(tree, "query-1", "query-2", "right");
@@ -601,10 +736,12 @@ describe("movePane", () => {
 
 describe("updateSizes", () => {
   it("updates sizes on root split", () => {
-    const tree = split("root", "h", [50, 50], [
-      leaf("a", "spec-a"),
-      leaf("b", "spec-b"),
-    ]);
+    const tree = split(
+      "root",
+      "h",
+      [50, 50],
+      [leaf("a", "spec-a"), leaf("b", "spec-b")],
+    );
 
     const result = updateSizes(tree, "root", [30, 70]);
 
@@ -612,10 +749,20 @@ describe("updateSizes", () => {
   });
 
   it("updates sizes on nested split", () => {
-    const tree = split("root", "h", [50, 50], [
-      split("left", "v", [50, 50], [leaf("a", "spec-a"), leaf("b", "spec-b")]),
-      leaf("right", "spec-right"),
-    ]);
+    const tree = split(
+      "root",
+      "h",
+      [50, 50],
+      [
+        split(
+          "left",
+          "v",
+          [50, 50],
+          [leaf("a", "spec-a"), leaf("b", "spec-b")],
+        ),
+        leaf("right", "spec-right"),
+      ],
+    );
 
     const result = updateSizes(tree, "left", [20, 80]);
 
@@ -627,10 +774,12 @@ describe("updateSizes", () => {
   });
 
   it("returns unchanged tree when id not found", () => {
-    const tree = split("root", "h", [50, 50], [
-      leaf("a", "spec-a"),
-      leaf("b", "spec-b"),
-    ]);
+    const tree = split(
+      "root",
+      "h",
+      [50, 50],
+      [leaf("a", "spec-a"), leaf("b", "spec-b")],
+    );
 
     const result = updateSizes(tree, "nonexistent", [30, 70]);
 
@@ -638,10 +787,12 @@ describe("updateSizes", () => {
   });
 
   it("returns unchanged tree when targeting a leaf", () => {
-    const tree = split("root", "h", [50, 50], [
-      leaf("a", "spec-a"),
-      leaf("b", "spec-b"),
-    ]);
+    const tree = split(
+      "root",
+      "h",
+      [50, 50],
+      [leaf("a", "spec-a"), leaf("b", "spec-b")],
+    );
 
     const result = updateSizes(tree, "a", [30, 70]);
 
@@ -650,10 +801,12 @@ describe("updateSizes", () => {
   });
 
   it("supports pixel sizes", () => {
-    const tree = split("root", "h", [50, 50], [
-      leaf("a", "spec-a"),
-      leaf("b", "spec-b"),
-    ]);
+    const tree = split(
+      "root",
+      "h",
+      [50, 50],
+      [leaf("a", "spec-a"), leaf("b", "spec-b")],
+    );
 
     const result = updateSizes(tree, "root", [{ px: 200 }, 100]);
 
@@ -671,16 +824,28 @@ describe("regression: pixel sizes preserved on nested insert", () => {
 
   it("inserting into nested split does not affect parent's pixel sizes", () => {
     // This matches the default workbench layout
-    const tree = split("root", "h", [{ px: 180 }, 100], [
-      split("left-split", "v", [{ px: 80 }, 100], [
-        leaf("time-pane", "time-controls"),
-        leaf("picker-pane", "picker"),
-      ]),
-      leaf("content-pane", "orders"),
-    ]);
+    const tree = split(
+      "root",
+      "h",
+      [{ px: 180 }, 100],
+      [
+        split(
+          "left-split",
+          "v",
+          [{ px: 80 }, 100],
+          [leaf("time-pane", "time-controls"), leaf("picker-pane", "picker")],
+        ),
+        leaf("content-pane", "orders"),
+      ],
+    );
 
     // Insert a tile below the picker (vertical drop)
-    const { tree: result } = insertTile(tree, "picker-pane", "bottom", "shipments");
+    const { tree: result } = insertTile(
+      tree,
+      "picker-pane",
+      "bottom",
+      "shipments",
+    );
 
     // Root sizes should be UNCHANGED
     const rootSplit = result as SplitPane;
@@ -700,13 +865,20 @@ describe("regression: pixel sizes preserved on nested insert", () => {
   });
 
   it("multiple nested inserts do not accumulate size changes", () => {
-    let tree: PaneNode = split("root", "h", [{ px: 180 }, 100], [
-      split("left-split", "v", [{ px: 80 }, 100], [
-        leaf("time-pane", "time-controls"),
-        leaf("picker-pane", "picker"),
-      ]),
-      leaf("content-pane", "orders"),
-    ]);
+    let tree: PaneNode = split(
+      "root",
+      "h",
+      [{ px: 180 }, 100],
+      [
+        split(
+          "left-split",
+          "v",
+          [{ px: 80 }, 100],
+          [leaf("time-pane", "time-controls"), leaf("picker-pane", "picker")],
+        ),
+        leaf("content-pane", "orders"),
+      ],
+    );
 
     // Insert first tile below picker
     tree = insertTile(tree, "picker-pane", "bottom", "shipments-1").tree;
@@ -725,16 +897,28 @@ describe("regression: pixel sizes preserved on nested insert", () => {
   });
 
   it("inserting horizontally into content area works correctly", () => {
-    const tree = split("root", "h", [{ px: 180 }, 100], [
-      split("left-split", "v", [{ px: 80 }, 100], [
-        leaf("time-pane", "time-controls"),
-        leaf("picker-pane", "picker"),
-      ]),
-      leaf("content-pane", "orders"),
-    ]);
+    const tree = split(
+      "root",
+      "h",
+      [{ px: 180 }, 100],
+      [
+        split(
+          "left-split",
+          "v",
+          [{ px: 80 }, 100],
+          [leaf("time-pane", "time-controls"), leaf("picker-pane", "picker")],
+        ),
+        leaf("content-pane", "orders"),
+      ],
+    );
 
     // Insert to the right of orders (horizontal drop)
-    const { tree: result } = insertTile(tree, "content-pane", "right", "inventory");
+    const { tree: result } = insertTile(
+      tree,
+      "content-pane",
+      "right",
+      "inventory",
+    );
 
     // Root structure changes - content-pane is now a split
     const rootSplit = result as SplitPane;
