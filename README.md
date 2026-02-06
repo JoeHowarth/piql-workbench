@@ -23,7 +23,7 @@ Render dataframes sent from a Rust/Python backend via Arrow IPC. Optimized for:
 
 ```tsx
 <DataFrameTable
-  data={arrowBufferSignal}  // Accessor<ArrayBuffer | null>
+  table={arrowTableSignal}  // Accessor<Table | null>
   config={{
     columns: {
       price: { label: 'Price ($)', width: 100 },
@@ -41,3 +41,8 @@ Render dataframes sent from a Rust/Python backend via Arrow IPC. Optimized for:
 ```
 
 Config is optional — the table will render with sensible defaults inferred from the Arrow schema.
+
+## Testing
+
+- Unit tests: `bun run test:unit`
+- E2E tests (Playwright): `bun run test:e2e`

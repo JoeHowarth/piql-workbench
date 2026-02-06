@@ -5,6 +5,11 @@
     "packages/*",
     "apps/*"
   ],
+  "scripts": {
+    "test:unit": "bun test apps packages",
+    "test:e2e": "playwright test",
+    "build:demos": "bun run --cwd apps/demo build && bun run --cwd apps/piql-demo build && bun run --cwd apps/workbench-demo build"
+  },
   "devDependencies": {
     "@biomejs/biome": "^2.3.13",
     "@playwright/test": "^1.58.1"
