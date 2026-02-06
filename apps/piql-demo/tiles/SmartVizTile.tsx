@@ -1,11 +1,13 @@
+import { DataFrameTable, useArrowData } from "query-viz";
 import {
-  BarChart,
-  DataFrameTable,
-  LineChart,
-  ScatterChart,
-  useArrowData,
-} from "query-viz";
-import { createMemo, createSignal, For, Match, Show, Switch } from "solid-js";
+  createMemo,
+  createSignal,
+  For,
+  Match,
+  Show,
+  Suspense,
+  Switch,
+} from "solid-js";
 import {
   type TileSpec,
   useFocusMode,
@@ -18,6 +20,11 @@ import {
   inferScatterChartConfig,
 } from "../chartInference";
 import { CodeInput } from "../components/CodeInput";
+import {
+  LazyBarChart,
+  LazyLineChart,
+  LazyScatterChart,
+} from "../components/lazyCharts";
 import { client } from "../piql";
 import {
   clearSmartVizContext,
@@ -279,7 +286,18 @@ User's follow-up request: ${q}`;
               />
             </Match>
             <Match when={state().vizType === "bar" && barConfig()}>
-              <BarChart table={() => state().table} config={barConfig()!} />
+              <Suspense
+                fallback={
+                  <div class="h-full flex items-center justify-center text-gray-400 dark:text-gray-500 text-sm">
+                    Loading chart...
+                  </div>
+                }
+              >
+                <LazyBarChart
+                  table={() => state().table}
+                  config={barConfig()!}
+                />
+              </Suspense>
             </Match>
             <Match when={state().vizType === "bar" && !barConfig()}>
               <div class="h-full flex items-center justify-center text-gray-400 dark:text-gray-500 text-sm">
@@ -287,7 +305,18 @@ User's follow-up request: ${q}`;
               </div>
             </Match>
             <Match when={state().vizType === "line" && lineConfig()}>
-              <LineChart table={() => state().table} config={lineConfig()!} />
+              <Suspense
+                fallback={
+                  <div class="h-full flex items-center justify-center text-gray-400 dark:text-gray-500 text-sm">
+                    Loading chart...
+                  </div>
+                }
+              >
+                <LazyLineChart
+                  table={() => state().table}
+                  config={lineConfig()!}
+                />
+              </Suspense>
             </Match>
             <Match when={state().vizType === "line" && !lineConfig()}>
               <div class="h-full flex items-center justify-center text-gray-400 dark:text-gray-500 text-sm">
@@ -295,10 +324,18 @@ User's follow-up request: ${q}`;
               </div>
             </Match>
             <Match when={state().vizType === "scatter" && scatterConfig()}>
-              <ScatterChart
-                table={() => state().table}
-                config={scatterConfig()!}
-              />
+              <Suspense
+                fallback={
+                  <div class="h-full flex items-center justify-center text-gray-400 dark:text-gray-500 text-sm">
+                    Loading chart...
+                  </div>
+                }
+              >
+                <LazyScatterChart
+                  table={() => state().table}
+                  config={scatterConfig()!}
+                />
+              </Suspense>
             </Match>
             <Match when={state().vizType === "scatter" && !scatterConfig()}>
               <div class="h-full flex items-center justify-center text-gray-400 dark:text-gray-500 text-sm">

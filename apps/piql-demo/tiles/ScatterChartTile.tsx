@@ -1,8 +1,9 @@
-import { ScatterChart, useArrowData } from "query-viz";
-import { createMemo, Show } from "solid-js";
+import { useArrowData } from "query-viz";
+import { createMemo, Show, Suspense } from "solid-js";
 import { type TileSpec, usePaneId } from "workbench";
 import { inferScatterChartConfig } from "../chartInference";
 import { CodeInput } from "../components/CodeInput";
+import { LazyScatterChart } from "../components/lazyCharts";
 import { client } from "../piql";
 import {
   getScatterState,
@@ -74,7 +75,18 @@ function ScatterChartContent() {
         </Show>
 
         <Show when={state().table && chartConfig()}>
-          <ScatterChart table={() => state().table} config={chartConfig()!} />
+          <Suspense
+            fallback={
+              <div class="h-full flex items-center justify-center text-gray-400 dark:text-gray-500 text-sm">
+                Loading chart...
+              </div>
+            }
+          >
+            <LazyScatterChart
+              table={() => state().table}
+              config={chartConfig()!}
+            />
+          </Suspense>
         </Show>
 
         <Show when={state().table && !chartConfig()}>

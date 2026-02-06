@@ -1,5 +1,5 @@
-import { BarChart, useArrowData } from "query-viz";
-import { createMemo, Show } from "solid-js";
+import { useArrowData } from "query-viz";
+import { createMemo, Show, Suspense } from "solid-js";
 import { type TileSpec, usePaneId } from "workbench";
 import { inferBarChartConfig } from "../chartInference";
 import {
@@ -9,6 +9,7 @@ import {
   setChartResult,
 } from "../chartStore";
 import { CodeInput } from "../components/CodeInput";
+import { LazyBarChart } from "../components/lazyCharts";
 import { client } from "../piql";
 
 export const chartTile = (): TileSpec => ({
@@ -77,7 +78,15 @@ function ChartContent() {
         </Show>
 
         <Show when={state().table && chartConfig()}>
-          <BarChart table={() => state().table} config={chartConfig()!} />
+          <Suspense
+            fallback={
+              <div class="h-full flex items-center justify-center text-gray-400 dark:text-gray-500 text-sm">
+                Loading chart...
+              </div>
+            }
+          >
+            <LazyBarChart table={() => state().table} config={chartConfig()!} />
+          </Suspense>
         </Show>
 
         <Show when={state().table && !chartConfig()}>

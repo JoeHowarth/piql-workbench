@@ -1,8 +1,9 @@
-import { LineChart, useArrowData } from "query-viz";
-import { createMemo, Show } from "solid-js";
+import { useArrowData } from "query-viz";
+import { createMemo, Show, Suspense } from "solid-js";
 import { type TileSpec, usePaneId } from "workbench";
 import { inferLineChartConfig } from "../chartInference";
 import { CodeInput } from "../components/CodeInput";
+import { LazyLineChart } from "../components/lazyCharts";
 import {
   getLineState,
   setLineLoading,
@@ -72,7 +73,18 @@ function LineChartContent() {
         </Show>
 
         <Show when={state().table && chartConfig()}>
-          <LineChart table={() => state().table} config={chartConfig()!} />
+          <Suspense
+            fallback={
+              <div class="h-full flex items-center justify-center text-gray-400 dark:text-gray-500 text-sm">
+                Loading chart...
+              </div>
+            }
+          >
+            <LazyLineChart
+              table={() => state().table}
+              config={chartConfig()!}
+            />
+          </Suspense>
         </Show>
 
         <Show when={state().table && !chartConfig()}>

@@ -15,17 +15,16 @@ export default defineConfig({
     ],
   },
   build: {
-    chunkSizeWarningLimit: 650,
+    chunkSizeWarningLimit: 500,
     rollupOptions: {
       output: {
         manualChunks(id) {
           if (!id.includes("node_modules")) return;
-          if (
-            id.includes("/echarts/") ||
-            id.includes("/zrender/") ||
-            id.includes("/echarts-solid/")
-          ) {
-            return "vendor-echarts";
+          if (id.includes("/echarts-solid/")) {
+            return "vendor-echarts-solid";
+          }
+          if (id.includes("/echarts/") || id.includes("/zrender/")) {
+            return "vendor-echarts-core";
           }
           if (
             id.includes("/@codemirror/") ||

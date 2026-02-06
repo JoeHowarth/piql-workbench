@@ -1,11 +1,5 @@
 import { BarChart, LineChart, ScatterChart } from "echarts/charts";
-import {
-  DatasetComponent,
-  GridComponent,
-  LegendComponent,
-  TooltipComponent,
-  TransformComponent,
-} from "echarts/components";
+import { GridComponent, TooltipComponent } from "echarts/components";
 import * as echarts from "echarts/core";
 import { CanvasRenderer } from "echarts/renderers";
 
@@ -16,9 +10,6 @@ echarts.use([
   ScatterChart,
   GridComponent,
   TooltipComponent,
-  LegendComponent,
-  DatasetComponent,
-  TransformComponent,
   CanvasRenderer,
 ]);
 
