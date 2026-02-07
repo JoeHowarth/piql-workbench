@@ -58,6 +58,7 @@ function ChartContent() {
           onSubmit={submit}
           testId="chart-editor"
           inputTestId="chart-editor-input"
+          inputAriaLabel="Chart query editor"
           class="flex-1 min-h-[32px]"
         />
         <button

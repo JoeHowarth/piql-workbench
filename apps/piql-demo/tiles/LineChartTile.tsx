@@ -53,6 +53,7 @@ function LineChartContent() {
           onSubmit={submit}
           testId="line-editor"
           inputTestId="line-editor-input"
+          inputAriaLabel="Line chart query editor"
           class="flex-1 min-h-[32px]"
         />
         <button

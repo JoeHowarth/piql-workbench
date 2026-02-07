@@ -55,6 +55,7 @@ function ScatterChartContent() {
           onSubmit={submit}
           testId="scatter-editor"
           inputTestId="scatter-editor-input"
+          inputAriaLabel="Scatter chart query editor"
           class="flex-1 min-h-[32px]"
         />
         <button

@@ -13,6 +13,7 @@ interface Props {
   class?: string;
   testId?: string;
   inputTestId?: string;
+  inputAriaLabel?: string;
 }
 
 export function CodeInput(props: Props) {
@@ -107,6 +108,11 @@ export function CodeInput(props: Props) {
     if (props.inputTestId) {
       const content = view.dom.querySelector(".cm-content");
       content?.setAttribute("data-testid", props.inputTestId);
+    }
+
+    if (props.inputAriaLabel) {
+      const content = view.dom.querySelector(".cm-content");
+      content?.setAttribute("aria-label", props.inputAriaLabel);
     }
   });
 

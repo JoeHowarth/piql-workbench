@@ -99,6 +99,7 @@ function AskContent() {
             value={state().generatedQuery}
             onChange={(v) => setGeneratedQuery(paneId, v)}
             onSubmit={runQuery}
+            inputAriaLabel="Generated query editor"
             class="flex-1 min-h-[32px]"
           />
           <button

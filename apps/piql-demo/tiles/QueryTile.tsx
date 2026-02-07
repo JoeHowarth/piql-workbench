@@ -49,6 +49,7 @@ function QueryContent() {
           onSubmit={submit}
           testId="query-editor"
           inputTestId="query-editor-input"
+          inputAriaLabel="Query editor"
           class="flex-1 min-h-[32px]"
         />
         <button

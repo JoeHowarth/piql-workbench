@@ -10,7 +10,11 @@ interface Props {
 }
 
 // Handle component that syncs sizes on drag end
-const SyncHandle: Component<{ paneId: string; class: string }> = (props) => {
+const SyncHandle: Component<{
+  paneId: string;
+  class: string;
+  ariaLabel: string;
+}> = (props) => {
   const { updateSizes } = useWorkbench();
   const resizable = useResizableContext();
 
@@ -21,7 +25,11 @@ const SyncHandle: Component<{ paneId: string; class: string }> = (props) => {
   };
 
   return (
-    <Resizable.Handle onHandleDragEnd={handleDragEnd} class={props.class} />
+    <Resizable.Handle
+      onHandleDragEnd={handleDragEnd}
+      class={props.class}
+      aria-label={props.ariaLabel}
+    />
   );
 };
 
@@ -117,6 +125,7 @@ export const SplitPane: Component<Props> = (props) => {
                 <Show when={index() < props.pane.children.length - 1}>
                   <SyncHandle
                     paneId={props.pane.id}
+                    ariaLabel="Resize panes"
                     class="shrink-0 bg-gray-300 dark:bg-gray-600 hover:bg-blue-400 dark:hover:bg-blue-500 transition-colors data-[orientation=horizontal]:w-0.5 data-[orientation=horizontal]:cursor-col-resize data-[orientation=vertical]:h-0.5 data-[orientation=vertical]:cursor-row-resize"
                   />
                 </Show>

@@ -255,6 +255,7 @@ User's follow-up request: ${q}`;
             onSubmit={runQuery}
             testId="smartviz-generated-editor"
             inputTestId="smartviz-generated-editor-input"
+            inputAriaLabel="SmartViz generated query editor"
             class="flex-1 min-h-[32px]"
           />
           <button
