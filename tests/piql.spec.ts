@@ -165,6 +165,23 @@ test.describe("PiQL Demo - Query Tile State Persistence", () => {
     expect(resizedWidth).toBeGreaterThan(initialWidth);
   });
 
+  test("large query results are virtualized in the table body", async ({
+    page,
+  }) => {
+    const queryPane = page.getByTestId("pane-query");
+    const editor = queryPane.getByTestId("query-editor-input");
+    await editor.click();
+    await page.keyboard.type("items.head(100)");
+    await queryPane.getByRole("button", { name: "Run" }).click();
+
+    await expect(queryPane.locator("table")).toBeVisible({ timeout: 3000 });
+    await page.waitForTimeout(200);
+
+    // Without virtualization, this would render all 100 rows.
+    const renderedRows = await queryPane.locator("tbody tr").count();
+    expect(renderedRows).toBeLessThan(70);
+  });
+
   test("smartviz ask flow works in mock mode", async ({ page }) => {
     const dataframesPane = page.getByTestId("pane-dataframes");
     const queryPane = page.getByTestId("pane-query");
