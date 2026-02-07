@@ -13,7 +13,7 @@ export default defineConfig({
   projects: [
     {
       name: "workbench-demo",
-      testMatch: ["workbench.spec.ts", "a11y.spec.ts"],
+      testMatch: ["workbench.spec.ts", "a11y.spec.ts", "visual.spec.ts"],
       use: {
         browserName: "chromium",
         baseURL: "http://localhost:5173",
@@ -21,7 +21,7 @@ export default defineConfig({
     },
     {
       name: "piql-demo",
-      testMatch: ["piql.spec.ts", "chart.spec.ts", "a11y.spec.ts"],
+      testMatch: ["piql.spec.ts", "chart.spec.ts", "a11y.spec.ts", "visual.spec.ts"],
       use: {
         browserName: "chromium",
         baseURL: "http://localhost:5174",
