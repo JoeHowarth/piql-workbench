@@ -8,7 +8,8 @@
   "scripts": {
     "test:unit": "bun test apps packages",
     "test:e2e": "playwright test",
-    "build:demos": "bun run --cwd apps/demo build && bun run --cwd apps/piql-demo build && bun run --cwd apps/workbench-demo build"
+    "build:demos": "bun run --cwd apps/demo build && bun run --cwd apps/piql-demo build && bun run --cwd apps/workbench-demo build",
+    "check:budgets": "bun scripts/check-bundle-budgets.mjs"
   },
   "devDependencies": {
     "@biomejs/biome": "^2.3.13",

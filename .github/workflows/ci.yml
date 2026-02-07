@@ -110,3 +110,6 @@ jobs:
 
       - name: Build Demos
         run: bun run build:demos
+
+      - name: Enforce Bundle Budgets
+        run: bun run check:budgets
