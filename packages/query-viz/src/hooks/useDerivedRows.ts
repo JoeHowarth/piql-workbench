@@ -37,6 +37,48 @@ function matchesFilter(value: unknown, filter: FilterValue): boolean {
   return true;
 }
 
+function toTimeMs(value: unknown): number | null {
+  if (value instanceof Date) {
+    const time = value.getTime();
+    return Number.isNaN(time) ? null : time;
+  }
+
+  if (typeof value === "string") {
+    // Avoid treating arbitrary strings like "1" as dates.
+    if (!/[T:-]/.test(value)) return null;
+    const parsed = Date.parse(value);
+    return Number.isNaN(parsed) ? null : parsed;
+  }
+
+  return null;
+}
+
+function compareValues(aVal: unknown, bVal: unknown): number {
+  if (typeof aVal === "bigint" && typeof bVal === "bigint") {
+    if (aVal === bVal) return 0;
+    return aVal < bVal ? -1 : 1;
+  }
+
+  const aTime = toTimeMs(aVal);
+  const bTime = toTimeMs(bVal);
+  if (aTime !== null && bTime !== null) {
+    return aTime - bTime;
+  }
+
+  if (
+    (typeof aVal === "number" || typeof aVal === "bigint") &&
+    (typeof bVal === "number" || typeof bVal === "bigint")
+  ) {
+    return Number(aVal) - Number(bVal);
+  }
+
+  if (typeof aVal === "boolean" && typeof bVal === "boolean") {
+    return Number(aVal) - Number(bVal);
+  }
+
+  return String(aVal).localeCompare(String(bVal));
+}
+
 export function useDerivedRows(
   rows: Accessor<Record<string, unknown>[]>,
   sortBy: Accessor<SortState>,
@@ -64,13 +106,7 @@ export function useDerivedRows(
         if (aVal == null) return 1;
         if (bVal == null) return -1;
 
-        // Compare values
-        let cmp: number;
-        if (typeof aVal === "number" && typeof bVal === "number") {
-          cmp = aVal - bVal;
-        } else {
-          cmp = String(aVal).localeCompare(String(bVal));
-        }
+        const cmp = compareValues(aVal, bVal);
 
         return sort.dir === "asc" ? cmp : -cmp;
       });
