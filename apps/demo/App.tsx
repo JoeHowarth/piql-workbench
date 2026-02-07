@@ -4,7 +4,10 @@ import { createSignal, onCleanup } from "solid-js";
 import { createMockTable } from "./mockData";
 
 export default function App() {
-  const [table, setTable] = createSignal<Table | null>(createMockTable(100));
+  let seed = 0;
+  const [table, setTable] = createSignal<Table | null>(
+    createMockTable(100, seed),
+  );
   const [isLive, setIsLive] = createSignal(false);
 
   // Live update simulation
@@ -17,7 +20,8 @@ export default function App() {
       setIsLive(false);
     } else {
       intervalId = window.setInterval(() => {
-        setTable(createMockTable(100));
+        seed += 1;
+        setTable(createMockTable(100, seed));
       }, 2000);
       setIsLive(true);
     }
@@ -28,7 +32,8 @@ export default function App() {
   });
 
   const refreshData = () => {
-    setTable(createMockTable(100));
+    seed += 1;
+    setTable(createMockTable(100, seed));
   };
 
   return (

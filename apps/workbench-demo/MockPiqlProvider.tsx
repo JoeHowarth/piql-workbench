@@ -3,10 +3,22 @@ import type { PiqlClient } from "piql-client";
 import { createContext, type JSX, useContext } from "solid-js";
 import { createMockTable } from "./mockData";
 
+const LIST_DELAY_MS = 100;
+const QUERY_DELAY_MS = 350;
+const ASK_DELAY_MS = 120;
+
 const resolveRowCount = (input: string): number => {
   const countMatch = input.match(/\b(\d+)\b/);
   const count = countMatch ? Number.parseInt(countMatch[1], 10) : 25;
   return Math.max(1, Math.min(count, 100));
+};
+
+const hashString = (input: string): number => {
+  let hash = 0;
+  for (let i = 0; i < input.length; i++) {
+    hash = (hash * 31 + input.charCodeAt(i)) >>> 0;
+  }
+  return hash;
 };
 
 const buildQueryFromQuestion = (question: string): string => {
@@ -21,13 +33,13 @@ const buildQueryFromQuestion = (question: string): string => {
 
 export const workbenchMockClient: PiqlClient = {
   async listDataframes() {
-    await new Promise((r) => setTimeout(r, 100));
+    await new Promise((r) => setTimeout(r, LIST_DELAY_MS));
     return ["orders", "inventory", "shipments"];
   },
 
   async query(query: string): Promise<Table> {
     // Simulate network delay
-    await new Promise((r) => setTimeout(r, 300 + Math.random() * 200));
+    await new Promise((r) => setTimeout(r, QUERY_DELAY_MS));
 
     // Parse simple patterns from query to vary response
     const rowCount = resolveRowCount(query);
@@ -37,7 +49,7 @@ export const workbenchMockClient: PiqlClient = {
       throw new Error(`Query failed: ${query}`);
     }
 
-    return createMockTable(rowCount);
+    return createMockTable(rowCount, hashString(query));
   },
 
   subscribe(query, onData, onError) {
@@ -49,21 +61,22 @@ export const workbenchMockClient: PiqlClient = {
     }
 
     const interval = setInterval(() => {
-      onData(createMockTable(resolveRowCount(query)));
+      onData(createMockTable(resolveRowCount(query), hashString(query)));
     }, 1000);
 
     return () => clearInterval(interval);
   },
 
   async ask(question, execute) {
-    await new Promise((r) => setTimeout(r, 120));
+    await new Promise((r) => setTimeout(r, ASK_DELAY_MS));
     const query = buildQueryFromQuestion(question);
+    const seed = hashString(query);
 
     if (!execute) {
       return { query };
     }
 
-    return { query, table: createMockTable(resolveRowCount(question)) };
+    return { query, table: createMockTable(resolveRowCount(question), seed) };
   },
 };
 

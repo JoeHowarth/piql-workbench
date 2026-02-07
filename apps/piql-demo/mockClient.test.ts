@@ -22,6 +22,17 @@ describe("createMockClient", () => {
     expect(table.numRows).toBe(4);
   });
 
+  it("returns deterministic results for repeated identical queries", async () => {
+    const client = createMockClient();
+
+    const first = await client.query("items.head(6)");
+    const second = await client.query("items.head(6)");
+
+    const firstRows = first.toArray().map((row) => row.toJSON());
+    const secondRows = second.toArray().map((row) => row.toJSON());
+    expect(secondRows).toEqual(firstRows);
+  });
+
   it("implements ask without execution", async () => {
     const client = createMockClient();
     const result = await client.ask("show me items", false);

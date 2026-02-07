@@ -18,12 +18,14 @@ export const tableTile = (id: string, config: TableConfig): TileSpec => ({
 
 const TableContent: Component<{ rowCount: number }> = (props) => {
   const [table, setTable] = createSignal<Table | null>(
-    createMockTable(props.rowCount),
+    createMockTable(props.rowCount, 0),
   );
 
   // Simulate live updates
+  let tick = 0;
   const intervalId = window.setInterval(() => {
-    setTable(createMockTable(props.rowCount));
+    tick += 1;
+    setTable(createMockTable(props.rowCount, tick));
   }, 3000);
 
   onCleanup(() => clearInterval(intervalId));

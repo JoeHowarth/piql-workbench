@@ -1,12 +1,23 @@
 import { type Table, tableFromArrays } from "apache-arrow";
 import type { PiqlClient } from "piql-client";
 
-function createMockTable(rowCount: number): Table {
+const LIST_DELAY_MS = 100;
+const QUERY_DELAY_MS = 350;
+const ASK_DELAY_MS = 120;
+
+function hashString(input: string): number {
+  let hash = 0;
+  for (let i = 0; i < input.length; i++) {
+    hash = (hash * 31 + input.charCodeAt(i)) >>> 0;
+  }
+  return hash;
+}
+
+function createMockTable(rowCount: number, seed = 0): Table {
   const ids = Int32Array.from({ length: rowCount }, (_, i) => i + 1);
   const names = Array.from({ length: rowCount }, (_, i) => `Item ${i + 1}`);
-  const values = Float64Array.from(
-    { length: rowCount },
-    () => Math.round(Math.random() * 1000) / 10,
+  const values = Float64Array.from({ length: rowCount }, (_, i) =>
+    Number((((seed + (i + 1) * 37) % 1000) / 10).toFixed(1)),
   );
 
   return tableFromArrays({ id: ids, name: names, value: values });
@@ -33,12 +44,12 @@ export function createMockClient(): PiqlClient {
 
   return {
     async listDataframes() {
-      await new Promise((r) => setTimeout(r, 100));
+      await new Promise((r) => setTimeout(r, LIST_DELAY_MS));
       return ["items", "users", "orders"];
     },
 
     async query(query: string) {
-      await new Promise((r) => setTimeout(r, 300 + Math.random() * 200));
+      await new Promise((r) => setTimeout(r, QUERY_DELAY_MS));
 
       if (query.includes("error") || query.includes("fail")) {
         throw new Error(`Query failed: ${query}`);
@@ -46,8 +57,9 @@ export function createMockClient(): PiqlClient {
 
       const headMatch = query.match(/\.head\((\d+)\)/);
       const rowCount = headMatch ? parseInt(headMatch[1], 10) : 25;
+      const seed = hashString(query);
 
-      return createMockTable(Math.min(rowCount, 100));
+      return createMockTable(Math.min(rowCount, 100), seed);
     },
 
     subscribe(query, onData, onError) {
@@ -61,21 +73,23 @@ export function createMockClient(): PiqlClient {
       const interval = setInterval(() => {
         const headMatch = query.match(/\.head\((\d+)\)/);
         const rowCount = headMatch ? parseInt(headMatch[1], 10) : 25;
-        onData(createMockTable(Math.min(rowCount, 100)));
+        const seed = hashString(query);
+        onData(createMockTable(Math.min(rowCount, 100), seed));
       }, 1000);
 
       return () => clearInterval(interval);
     },
 
     async ask(question, execute) {
-      await new Promise((r) => setTimeout(r, 120));
+      await new Promise((r) => setTimeout(r, ASK_DELAY_MS));
       const { query, rowCount } = buildQueryFromQuestion(question);
+      const seed = hashString(query);
 
       if (!execute) {
         return { query };
       }
 
-      return { query, table: createMockTable(rowCount) };
+      return { query, table: createMockTable(rowCount, seed) };
     },
   };
 }

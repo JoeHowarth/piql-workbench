@@ -18,6 +18,15 @@ describe("workbenchMockClient", () => {
     expect(table.numRows).toBe(3);
   });
 
+  it("returns deterministic results for repeated identical queries", async () => {
+    const first = await workbenchMockClient.query("orders.head(6)");
+    const second = await workbenchMockClient.query("orders.head(6)");
+
+    const firstRows = first.toArray().map((row) => row.toJSON());
+    const secondRows = second.toArray().map((row) => row.toJSON());
+    expect(secondRows).toEqual(firstRows);
+  });
+
   it("supports ask execute=false and execute=true", async () => {
     const noExec = await workbenchMockClient.ask("show top 5 inventory", false);
     expect(typeof noExec.query).toBe("string");
