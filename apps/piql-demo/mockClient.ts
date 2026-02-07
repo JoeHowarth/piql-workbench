@@ -5,6 +5,28 @@ const LIST_DELAY_MS = 100;
 const QUERY_DELAY_MS = 350;
 const ASK_DELAY_MS = 120;
 
+const createAbortError = () => new DOMException("Aborted", "AbortError");
+
+function sleep(ms: number, signal?: AbortSignal) {
+  if (signal?.aborted) {
+    return Promise.reject(createAbortError());
+  }
+
+  return new Promise<void>((resolve, reject) => {
+    const timeout = setTimeout(() => {
+      signal?.removeEventListener("abort", onAbort);
+      resolve();
+    }, ms);
+
+    const onAbort = () => {
+      clearTimeout(timeout);
+      reject(createAbortError());
+    };
+
+    signal?.addEventListener("abort", onAbort, { once: true });
+  });
+}
+
 function hashString(input: string): number {
   let hash = 0;
   for (let i = 0; i < input.length; i++) {
@@ -44,12 +66,12 @@ export function createMockClient(): PiqlClient {
 
   return {
     async listDataframes() {
-      await new Promise((r) => setTimeout(r, LIST_DELAY_MS));
+      await sleep(LIST_DELAY_MS);
       return ["items", "users", "orders"];
     },
 
-    async query(query: string) {
-      await new Promise((r) => setTimeout(r, QUERY_DELAY_MS));
+    async query(query: string, signal?: AbortSignal) {
+      await sleep(QUERY_DELAY_MS, signal);
 
       if (query.includes("error") || query.includes("fail")) {
         throw new Error(`Query failed: ${query}`);
@@ -80,8 +102,8 @@ export function createMockClient(): PiqlClient {
       return () => clearInterval(interval);
     },
 
-    async ask(question, execute) {
-      await new Promise((r) => setTimeout(r, ASK_DELAY_MS));
+    async ask(question, execute, signal) {
+      await sleep(ASK_DELAY_MS, signal);
       const { query, rowCount } = buildQueryFromQuestion(question);
       const seed = hashString(query);
 

@@ -36,6 +36,7 @@ import {
   setVizType,
   type VizType,
 } from "../smartVizStore";
+import { createRequestController, isAbortError } from "../utils/requestControl";
 
 export const smartVizTile = (): TileSpec => ({
   id: "smartviz",
@@ -74,6 +75,7 @@ function SmartVizContent() {
   const paneId = usePaneId();
   const { addTile } = useWorkbench();
   const state = () => getSmartVizState(paneId);
+  const requests = createRequestController();
 
   const duplicate = () => {
     const s = state();
@@ -96,6 +98,7 @@ function SmartVizContent() {
     if (!q) return;
 
     const s = state();
+    const { token, signal } = requests.begin();
     setSmartVizLoading(paneId, true);
 
     try {
@@ -118,15 +121,24 @@ User's follow-up request: ${q}`;
       }
 
       // Step 1: Get the generated query (no execution)
-      const { query } = await client.ask(fullQuestion, false);
+      const { query } = await client.ask(fullQuestion, false, signal);
+      if (!requests.isCurrent(token)) return;
       setSmartVizGeneratedQuery(paneId, query);
 
       // Step 2: Execute the query separately
-      const table = await client.query(query);
+      const table = await client.query(query, signal);
+      if (!requests.isCurrent(token)) return;
       setSmartVizQuestion(paneId, q);
       setSmartVizResult(paneId, query, table, null);
       setInputText("");
     } catch (e) {
+      if (isAbortError(e)) {
+        if (requests.isCurrent(token)) {
+          setSmartVizLoading(paneId, false);
+        }
+        return;
+      }
+      if (!requests.isCurrent(token)) return;
       // Query is already set, just show the error
       setSmartVizResult(
         paneId,
@@ -141,12 +153,21 @@ User's follow-up request: ${q}`;
     const q = state().generatedQuery.trim();
     if (!q) return;
 
+    const { token, signal } = requests.begin();
     setSmartVizLoading(paneId, true);
 
     try {
-      const result = await client.query(q);
+      const result = await client.query(q, signal);
+      if (!requests.isCurrent(token)) return;
       setSmartVizResult(paneId, q, result, null);
     } catch (e) {
+      if (isAbortError(e)) {
+        if (requests.isCurrent(token)) {
+          setSmartVizLoading(paneId, false);
+        }
+        return;
+      }
+      if (!requests.isCurrent(token)) return;
       setSmartVizResult(
         paneId,
         q,

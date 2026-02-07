@@ -27,6 +27,16 @@ describe("workbenchMockClient", () => {
     expect(secondRows).toEqual(firstRows);
   });
 
+  it("supports aborting in-flight queries", async () => {
+    const controller = new AbortController();
+    const pending = workbenchMockClient.query(
+      "orders.head(8)",
+      controller.signal,
+    );
+    controller.abort();
+    await expect(pending).rejects.toThrow("Aborted");
+  });
+
   it("supports ask execute=false and execute=true", async () => {
     const noExec = await workbenchMockClient.ask("show top 5 inventory", false);
     expect(typeof noExec.query).toBe("string");

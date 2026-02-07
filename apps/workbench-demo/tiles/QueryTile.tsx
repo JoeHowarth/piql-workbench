@@ -1,6 +1,6 @@
 import type { Table } from "apache-arrow";
 import { DataFrameTable } from "query-viz";
-import { createSignal, Show } from "solid-js";
+import { createSignal, onCleanup, Show } from "solid-js";
 import type { TileSpec } from "workbench";
 import { usePiqlClient } from "../piql";
 
@@ -17,22 +17,50 @@ function QueryContent() {
   const [table, setTable] = createSignal<Table | null>(null);
   const [loading, setLoading] = createSignal(false);
   const [error, setError] = createSignal<Error | null>(null);
+  let requestToken = 0;
+  let activeController: AbortController | null = null;
+
+  const beginRequest = () => {
+    requestToken += 1;
+    activeController?.abort();
+    activeController = new AbortController();
+    return {
+      token: requestToken,
+      signal: activeController.signal,
+    };
+  };
+
+  const isCurrent = (token: number) => token === requestToken;
 
   const submit = async () => {
     const q = queryText().trim();
     if (!q) return;
 
+    const { token, signal } = beginRequest();
     setLoading(true);
     setError(null);
 
     try {
-      const result = await client.query(q);
+      const result = await client.query(q, signal);
+      if (!isCurrent(token)) return;
       setTable(() => result);
     } catch (e) {
+      if (
+        (e instanceof DOMException && e.name === "AbortError") ||
+        (e instanceof Error && e.name === "AbortError")
+      ) {
+        if (isCurrent(token)) {
+          setLoading(false);
+        }
+        return;
+      }
+      if (!isCurrent(token)) return;
       setError(e instanceof Error ? e : new Error(String(e)));
       setTable(null);
     } finally {
-      setLoading(false);
+      if (isCurrent(token)) {
+        setLoading(false);
+      }
     }
   };
 
@@ -42,6 +70,10 @@ function QueryContent() {
       submit();
     }
   };
+
+  onCleanup(() => {
+    activeController?.abort();
+  });
 
   return (
     <div class="h-full flex flex-col">

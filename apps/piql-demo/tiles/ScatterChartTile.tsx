@@ -11,6 +11,7 @@ import {
   setScatterQuery,
   setScatterResult,
 } from "../scatterStore";
+import { createRequestController, isAbortError } from "../utils/requestControl";
 
 export const scatterChartTile = (): TileSpec => ({
   id: "scatter",
@@ -21,17 +22,27 @@ export const scatterChartTile = (): TileSpec => ({
 function ScatterChartContent() {
   const paneId = usePaneId();
   const state = () => getScatterState(paneId);
+  const requests = createRequestController();
 
   const submit = async () => {
     const q = state().queryText.trim();
     if (!q) return;
 
+    const { token, signal } = requests.begin();
     setScatterLoading(paneId, true);
 
     try {
-      const result = await client.query(q);
+      const result = await client.query(q, signal);
+      if (!requests.isCurrent(token)) return;
       setScatterResult(paneId, result, null);
     } catch (e) {
+      if (isAbortError(e)) {
+        if (requests.isCurrent(token)) {
+          setScatterLoading(paneId, false);
+        }
+        return;
+      }
+      if (!requests.isCurrent(token)) return;
       setScatterResult(
         paneId,
         null,

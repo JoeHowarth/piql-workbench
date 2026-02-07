@@ -16,11 +16,12 @@ export function createPiqlClient(baseUrl: string) {
     },
 
     /** Execute a one-off query, returns Arrow Table */
-    async query(query: string): Promise<Table> {
+    async query(query: string, signal?: AbortSignal): Promise<Table> {
       const res = await fetch(`${baseUrl}/query`, {
         method: "POST",
         headers: { "Content-Type": "text/plain" },
         body: query,
+        signal,
       });
 
       if (!res.ok) {
@@ -58,6 +59,7 @@ export function createPiqlClient(baseUrl: string) {
     async ask(
       question: string,
       execute?: boolean,
+      signal?: AbortSignal,
     ): Promise<{ query: string; table?: Table }> {
       const url = execute ? `${baseUrl}/ask?execute=true` : `${baseUrl}/ask`;
 
@@ -65,6 +67,7 @@ export function createPiqlClient(baseUrl: string) {
         method: "POST",
         headers: { "Content-Type": "text/plain" },
         body: question,
+        signal,
       });
 
       if (!res.ok) {

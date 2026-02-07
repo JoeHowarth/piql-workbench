@@ -33,6 +33,16 @@ describe("createMockClient", () => {
     expect(secondRows).toEqual(firstRows);
   });
 
+  it("supports aborting in-flight queries", async () => {
+    const client = createMockClient();
+    const controller = new AbortController();
+
+    const pending = client.query("items.head(8)", controller.signal);
+    controller.abort();
+
+    await expect(pending).rejects.toThrow("Aborted");
+  });
+
   it("implements ask without execution", async () => {
     const client = createMockClient();
     const result = await client.ask("show me items", false);

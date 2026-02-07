@@ -11,6 +11,7 @@ import {
 import { CodeInput } from "../components/CodeInput";
 import { LazyBarChart } from "../components/lazyCharts";
 import { client } from "../piql";
+import { createRequestController, isAbortError } from "../utils/requestControl";
 
 export const chartTile = (): TileSpec => ({
   id: "chart",
@@ -21,17 +22,27 @@ export const chartTile = (): TileSpec => ({
 function ChartContent() {
   const paneId = usePaneId();
   const state = () => getChartState(paneId);
+  const requests = createRequestController();
 
   const submit = async () => {
     const q = state().queryText.trim();
     if (!q) return;
 
+    const { token, signal } = requests.begin();
     setChartLoading(paneId, true);
 
     try {
-      const result = await client.query(q);
+      const result = await client.query(q, signal);
+      if (!requests.isCurrent(token)) return;
       setChartResult(paneId, result, null);
     } catch (e) {
+      if (isAbortError(e)) {
+        if (requests.isCurrent(token)) {
+          setChartLoading(paneId, false);
+        }
+        return;
+      }
+      if (!requests.isCurrent(token)) return;
       setChartResult(
         paneId,
         null,

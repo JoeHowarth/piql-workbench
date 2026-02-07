@@ -11,6 +11,7 @@ import {
   setLineResult,
 } from "../lineStore";
 import { client } from "../piql";
+import { createRequestController, isAbortError } from "../utils/requestControl";
 
 export const lineChartTile = (): TileSpec => ({
   id: "line",
@@ -21,17 +22,27 @@ export const lineChartTile = (): TileSpec => ({
 function LineChartContent() {
   const paneId = usePaneId();
   const state = () => getLineState(paneId);
+  const requests = createRequestController();
 
   const submit = async () => {
     const q = state().queryText.trim();
     if (!q) return;
 
+    const { token, signal } = requests.begin();
     setLineLoading(paneId, true);
 
     try {
-      const result = await client.query(q);
+      const result = await client.query(q, signal);
+      if (!requests.isCurrent(token)) return;
       setLineResult(paneId, result, null);
     } catch (e) {
+      if (isAbortError(e)) {
+        if (requests.isCurrent(token)) {
+          setLineLoading(paneId, false);
+        }
+        return;
+      }
+      if (!requests.isCurrent(token)) return;
       setLineResult(
         paneId,
         null,

@@ -7,6 +7,28 @@ const LIST_DELAY_MS = 100;
 const QUERY_DELAY_MS = 350;
 const ASK_DELAY_MS = 120;
 
+const createAbortError = () => new DOMException("Aborted", "AbortError");
+
+function sleep(ms: number, signal?: AbortSignal) {
+  if (signal?.aborted) {
+    return Promise.reject(createAbortError());
+  }
+
+  return new Promise<void>((resolve, reject) => {
+    const timeout = setTimeout(() => {
+      signal?.removeEventListener("abort", onAbort);
+      resolve();
+    }, ms);
+
+    const onAbort = () => {
+      clearTimeout(timeout);
+      reject(createAbortError());
+    };
+
+    signal?.addEventListener("abort", onAbort, { once: true });
+  });
+}
+
 const resolveRowCount = (input: string): number => {
   const countMatch = input.match(/\b(\d+)\b/);
   const count = countMatch ? Number.parseInt(countMatch[1], 10) : 25;
@@ -33,13 +55,13 @@ const buildQueryFromQuestion = (question: string): string => {
 
 export const workbenchMockClient: PiqlClient = {
   async listDataframes() {
-    await new Promise((r) => setTimeout(r, LIST_DELAY_MS));
+    await sleep(LIST_DELAY_MS);
     return ["orders", "inventory", "shipments"];
   },
 
-  async query(query: string): Promise<Table> {
+  async query(query: string, signal?: AbortSignal): Promise<Table> {
     // Simulate network delay
-    await new Promise((r) => setTimeout(r, QUERY_DELAY_MS));
+    await sleep(QUERY_DELAY_MS, signal);
 
     // Parse simple patterns from query to vary response
     const rowCount = resolveRowCount(query);
@@ -67,8 +89,8 @@ export const workbenchMockClient: PiqlClient = {
     return () => clearInterval(interval);
   },
 
-  async ask(question, execute) {
-    await new Promise((r) => setTimeout(r, ASK_DELAY_MS));
+  async ask(question, execute, signal) {
+    await sleep(ASK_DELAY_MS, signal);
     const query = buildQueryFromQuestion(question);
     const seed = hashString(query);
 

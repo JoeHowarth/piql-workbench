@@ -9,6 +9,7 @@ import {
   setQueryResult,
   setQueryText,
 } from "../queryStore";
+import { createRequestController, isAbortError } from "../utils/requestControl";
 
 export const queryTile = (): TileSpec => ({
   id: "query",
@@ -18,6 +19,7 @@ export const queryTile = (): TileSpec => ({
 
 function QueryContent() {
   const paneId = usePaneId();
+  const requests = createRequestController();
 
   // Get reactive state from store
   const state = () => getQueryState(paneId);
@@ -26,12 +28,21 @@ function QueryContent() {
     const q = state().queryText.trim();
     if (!q) return;
 
+    const { token, signal } = requests.begin();
     setQueryLoading(paneId, true);
 
     try {
-      const result = await client.query(q);
+      const result = await client.query(q, signal);
+      if (!requests.isCurrent(token)) return;
       setQueryResult(paneId, result, null);
     } catch (e) {
+      if (isAbortError(e)) {
+        if (requests.isCurrent(token)) {
+          setQueryLoading(paneId, false);
+        }
+        return;
+      }
+      if (!requests.isCurrent(token)) return;
       setQueryResult(
         paneId,
         null,

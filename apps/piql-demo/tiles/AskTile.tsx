@@ -10,6 +10,7 @@ import {
 } from "../askStore";
 import { CodeInput } from "../components/CodeInput";
 import { client } from "../piql";
+import { createRequestController, isAbortError } from "../utils/requestControl";
 
 export const askTile = (): TileSpec => ({
   id: "ask",
@@ -20,18 +21,28 @@ export const askTile = (): TileSpec => ({
 function AskContent() {
   const paneId = usePaneId();
   const state = () => getAskState(paneId);
+  const requests = createRequestController();
 
   // Submit natural language question
   const submitQuestion = async () => {
     const q = state().question.trim();
     if (!q) return;
 
+    const { token, signal } = requests.begin();
     setAskLoading(paneId, true);
 
     try {
-      const { query, table } = await client.ask(q, true);
+      const { query, table } = await client.ask(q, true, signal);
+      if (!requests.isCurrent(token)) return;
       setAskResult(paneId, query, table ?? null, null);
     } catch (e) {
+      if (isAbortError(e)) {
+        if (requests.isCurrent(token)) {
+          setAskLoading(paneId, false);
+        }
+        return;
+      }
+      if (!requests.isCurrent(token)) return;
       setAskResult(
         paneId,
         "",
@@ -46,12 +57,21 @@ function AskContent() {
     const q = state().generatedQuery.trim();
     if (!q) return;
 
+    const { token, signal } = requests.begin();
     setAskLoading(paneId, true);
 
     try {
-      const result = await client.query(q);
+      const result = await client.query(q, signal);
+      if (!requests.isCurrent(token)) return;
       setAskResult(paneId, q, result, null);
     } catch (e) {
+      if (isAbortError(e)) {
+        if (requests.isCurrent(token)) {
+          setAskLoading(paneId, false);
+        }
+        return;
+      }
+      if (!requests.isCurrent(token)) return;
       setAskResult(
         paneId,
         q,

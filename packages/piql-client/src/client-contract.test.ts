@@ -90,6 +90,23 @@ beforeEach(() => {
     }
 
     if (url.endsWith("/query")) {
+      if (body.includes("slow")) {
+        return await new Promise<Response>((resolve, reject) => {
+          const timeout = setTimeout(() => {
+            resolve(new Response(toBody(3), { status: 200 }));
+          }, 200);
+
+          init?.signal?.addEventListener(
+            "abort",
+            () => {
+              clearTimeout(timeout);
+              reject(new DOMException("Aborted", "AbortError"));
+            },
+            { once: true },
+          );
+        });
+      }
+
       return new Response(toBody(3), { status: 200 });
     }
 
@@ -177,5 +194,15 @@ describe("createPiqlClient contract", () => {
 
     unsubscribe();
     expect(source!.closed).toBe(true);
+  });
+
+  it("aborts query when the signal is canceled", async () => {
+    const client = createPiqlClient("http://piql.test");
+    const controller = new AbortController();
+
+    const pending = client.query("slow.head(3)", controller.signal);
+    controller.abort();
+
+    await expect(pending).rejects.toThrow("Aborted");
   });
 });
